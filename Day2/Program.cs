@@ -1,5 +1,6 @@
 ﻿var input = File.ReadAllText("Input.txt");
 var total = 0;
+var totalPower = 0;
 var maxRed = 12;
 var maxGreen = 13;
 var maxBlue = 14;
@@ -59,6 +60,7 @@ foreach (var line in input.Split("\r\n"))
     {
         Console.WriteLine("Game is valid");
 
+        // Part 1 needs the sum of the Ids.
         total += id;
     }
     else
@@ -66,7 +68,14 @@ foreach (var line in input.Split("\r\n"))
         Console.WriteLine("Game is invalid");
     }
 
+    // Part 2 needs the power.
+    var power = red * green * blue;
+    totalPower += power;
+
+    Console.WriteLine($"Power: {power}");
+
     Console.WriteLine();
 }
 
 Console.WriteLine($"Total: {total}");
+Console.WriteLine($"Total power: {totalPower}");
