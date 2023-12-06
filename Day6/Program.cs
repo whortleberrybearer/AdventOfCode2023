@@ -1,19 +1,19 @@
 ﻿var input = File.ReadAllText("Input.txt");
-var total = 0;
+var total = 0l;
 var races = new List<Race>();
-int[] times = null;
-int[] distances = null;
-var possibleWins = new List<int>();
+long[] times = null;
+long[] distances = null;
+var possibleWins = new List<long>();
 
 foreach (var line in input.Split("\r\n"))
 {
     if (line.StartsWith("Time:"))
     {
-        times = line.Replace("Time:", string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(n => int.Parse(n)).ToArray();
+        times = line.Replace("Time:", string.Empty).Replace(" ", string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(n => long.Parse(n)).ToArray();
     }
     else if (line.StartsWith("Distance:"))
     {
-        distances = line.Replace("Distance:", string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(n => int.Parse(n)).ToArray();
+        distances = line.Replace("Distance:", string.Empty).Replace(" ", string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(n => long.Parse(n)).ToArray();
     }
 }
 
@@ -24,9 +24,10 @@ for (int i = 0; i < times!.Count(); i++)
 
     Console.WriteLine($"Race Time: {maxTime}, Distance: {maxDistance}");
 
-    var wins = 0;
+    var minWinTime = 0l;
 
-    for (int time = 1; time < maxTime; time++)
+    // Could divide way though this, but just go for the inefficient process.
+    for (long time = 1; time < maxTime; time++)
     {
         var distance = time * (maxTime - time);
 
@@ -34,9 +35,13 @@ for (int i = 0; i < times!.Count(); i++)
 
         if (distance > maxDistance)
         {
-            ++wins;
+            minWinTime = time;
+
+            break;
         }
     }
+
+    var wins = maxTime - (minWinTime * 2) + 1;
 
     possibleWins.Add(wins);
 
@@ -47,7 +52,7 @@ for (int i = 0; i < times!.Count(); i++)
 
 total = 1;
 
-foreach (int value in possibleWins)
+foreach (var value in possibleWins)
 {
     total *= value;
 }
