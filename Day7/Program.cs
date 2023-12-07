@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography.X509Certificates;
-
-var input = File.ReadAllText("Input.txt");
+﻿var input = File.ReadAllText("Input.txt");
 var total = 0;
 var hands = new List<Hand>();
 
@@ -17,9 +15,9 @@ foreach (var line in input.Split("\r\n"))
 
 hands.Sort(new HandComparer());
 
-for (int i = 0; i < hands.Count; i++)
+for (var i = 0; i < hands.Count; i++)
 {
-    total += hands[i].Bid * (hands.Count - i);
+    total += hands[i].Bid * (i + 1);
 }
 
 Console.WriteLine($"Total: {total}");
@@ -36,16 +34,54 @@ class HandComparer : Comparer<Hand>
         
         if (xType == yType)
         {
-            return 0;
+            for (var i = 0; i < x.Cards.Length; i++)
+            {
+                var xValue = FindCardValue(x.Cards[i]);
+                var yValue = FindCardValue(y.Cards[i]);
+
+                if (xValue != yValue)
+                {
+                    return xValue - yValue;
+                }
+            }
         }
 
-        return xType - yType;
+        return yType - xType;
     }
-
+    
     private int FindType(string cards)
     {
-        var distinctCards = cards.ToArray().Distinct().ToArray();
+        var distinctCards = cards.Replace("J", string.Empty).ToArray().Distinct().ToArray();
 
+        if (distinctCards.Length == 0)
+        {
+            // All cards must be 'J'.
+            return FindHandValue(cards, new char[] { 'J' });
+        }
+        
+        if (cards.Any(c => c == 'J'))
+        {
+            var bestHandValue = 10;
+            
+            foreach (var distinctCard in distinctCards)
+            {
+                var jokerSwapedCards = cards.Replace('J', distinctCard);
+                var handValue = FindHandValue(jokerSwapedCards, distinctCards);
+
+                if (handValue < bestHandValue)
+                {
+                    bestHandValue = handValue;
+                }
+            }
+
+            return bestHandValue;
+        }
+        
+        return FindHandValue(cards, distinctCards);
+    }
+
+    private static int FindHandValue(string cards, char[] distinctCards)
+    {
         if (distinctCards.Length == 1)
         {
             // Five of a kind.
@@ -53,23 +89,13 @@ class HandComparer : Comparer<Hand>
         }
         else if (distinctCards.Length == 2)
         {
-            // Four of a kind or full house.
-            var card1Count = cards.Count(c => c == distinctCards[0]);
-            var card2Count = cards.Count(c => c == distinctCards[1]);
-
-            if ((card1Count == 1) || (card2Count == 1))
-            {
-                // Four of a kind.
-                return 1;
-            }
-            else
-            {
-                return 2;
-            }
+            // If 4 of 1 card, four of a kind otherwise full house.
+            return distinctCards.Any(dc => cards.Count(c => dc == c) == 4) ? 1 : 2;
         }
         else if (distinctCards.Length == 3)
         {
-            // 3 of a kind or 2 pair.
+            // If 3 of 1 card, 3 a kind otherwise 2 pair.
+            return distinctCards.Any(dc => cards.Count(c => dc == c) == 3) ? 3 : 4;
         }
         else if (distinctCards.Length == 4)
         {
@@ -79,5 +105,18 @@ class HandComparer : Comparer<Hand>
 
         // All cards unique, high card.
         return 6;
+    }
+
+    private int FindCardValue(char card)
+    {
+        return card switch
+        {
+            'A' => 14,
+            'K' => 13,
+            'Q' => 12,
+            'J' => 1,
+            'T' => 10,
+            _ => int.Parse(card.ToString())
+        };
     }
 }
