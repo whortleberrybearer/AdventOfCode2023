@@ -1,4 +1,6 @@
-﻿var input = File.ReadAllText("Input.txt");
+﻿using Arithmetic;
+
+var input = File.ReadAllText("Input.txt");
 string directions = null;
 var nodes = new Dictionary<string, Node>();
 
@@ -18,33 +20,47 @@ foreach (var line in input.Split("\r\n"))
     }
 }
 
-var currentNode = nodes["AAA"];
-var total = 0;
+var totalMoves = new List<int>();
 
-do
+foreach (var node in nodes.Where(n => n.Key.EndsWith("A")))
 {
-    for (var i = 0; i < directions.Length; i++)
+    var moves = 0;
+    var currentNode = node.Value;
+    var previousHits = new List<string>();
+
+    do
     {
-        ++total;
-
-        if (directions[i] == 'L')
+        for (var i = 0; i < directions.Length; i++)
         {
-            currentNode = nodes[currentNode.Left];
-        }
-        else
-        {
-            currentNode = nodes[currentNode.Right];
-        }
+            ++moves;
 
-        Console.WriteLine($"Current node: {currentNode.Key}");
+            if (directions[i] == 'L')
+            {
+                currentNode = nodes[currentNode.Left];
+            }
+            else
+            {
+                currentNode = nodes[currentNode.Right];
+            }
 
-        if (currentNode.Key == "ZZZ")
-        {
-            break;
+            Console.WriteLine($"Current node: {currentNode.Key}, Moves: {moves}");
+
+            if (currentNode.Key.EndsWith("Z"))
+            {
+                break;
+            }
         }
     }
+    while (!currentNode.Key.EndsWith("Z"));
+
+    totalMoves.Add(moves);
+
+    Console.WriteLine();
 }
-while (currentNode.Key != "ZZZ");
+
+LCM lcm = new LCM(totalMoves);
+
+var total = lcm.getLCM();
 
 Console.WriteLine($"Total: {total}");
 
