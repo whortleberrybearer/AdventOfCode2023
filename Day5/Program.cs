@@ -8,7 +8,6 @@ IEnumerable<Map> waterToLightMaps = null;
 IEnumerable<Map> lightToTempratureMaps = null;
 IEnumerable<Map> tempratureToHumidityMaps = null;
 IEnumerable<Map> humidityToLocationMaps = null;
-IEnumerable<SeedRange> seedRanges = null;
 
 for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
 {
@@ -18,11 +17,11 @@ for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
 
     if (line.StartsWith("seeds:"))
     {
-        seedRanges = ExtractSeedRanges(ref lineIndex);
+        var seeds = line.Replace("seeds: ", string.Empty).Split(' ');
 
-        foreach (var seedRange in seedRanges)
+        foreach (var seed in seeds)
         {
-            
+            seedsToLocationMap.Add(long.Parse(seed), -1);
         }
     }
     else if (line.StartsWith("seed-to-soil map:"))
@@ -86,21 +85,6 @@ long MapValue(IEnumerable<Map> maps, long source)
     return source;
 }
 
-IEnumerable<SeedRange> ExtractSeedRanges(ref int lineIndex)
-{
-    var seedRanges = new List<SeedRange>();
-    var parts = lines[lineIndex].Replace("seeds: ", string.Empty).Split(' ');
-
-    for (int i = 0; i < parts.Length; i += 2)
-    {
-        seedRanges.Add(new SeedRange(long.Parse(parts[i]), long.Parse(parts[i + 1]));
-    }
-
-    ++lineIndex;
-
-    return seedRanges;
-}
-
 IEnumerable<Map> ExtractMaps(ref int lineIndex)
 {
     var maps = new List<Map>();
@@ -120,5 +104,3 @@ IEnumerable<Map> ExtractMaps(ref int lineIndex)
 }
 
 record Map(long DesinationStart, long SourceStart, long Length);
-
-record SeedRange(long Start, long length);
