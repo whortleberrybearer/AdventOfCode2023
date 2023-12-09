@@ -1,5 +1,6 @@
 ﻿var input = File.ReadAllText("Input.txt");
-var total = 0;
+var totalFirst = 0;
+var totalLast = 0;
 
 foreach (var line in input.Split("\r\n"))
 {
@@ -8,9 +9,11 @@ foreach (var line in input.Split("\r\n"))
     var parts = line.Split(' ').Select(c => int.Parse(c)).ToList();
     var differences = parts.ToList();
     var lastNumbers = new List<int>();
+    var firstNumbers = new List<int>();
 
     do
     {
+        firstNumbers.Insert(0, differences.First());
         lastNumbers.Insert(0, differences.Last());
 
         var numbers = differences;
@@ -25,18 +28,27 @@ foreach (var line in input.Split("\r\n"))
     }
     while (!differences.All(n => n == 0));
 
-    var extrapolated = lastNumbers[0];
+    var extrapolatedFirst = firstNumbers[0];
+    var extrapolatedLast = lastNumbers[0];
+
+    for (var i = 1; i < firstNumbers.Count; i++)
+    {
+        extrapolatedFirst = firstNumbers[i] - extrapolatedFirst;
+    }
 
     for (var i = 1; i < lastNumbers.Count; i++)
     {
-        extrapolated += lastNumbers[i];
+        extrapolatedLast += lastNumbers[i];
     }
 
-    Console.WriteLine($"Extrapolated: {extrapolated}");
+    Console.WriteLine($"Extrapolated first: {extrapolatedFirst}");
+    Console.WriteLine($"Extrapolated last: {extrapolatedLast}");
 
-    total += extrapolated;
+    totalFirst += extrapolatedFirst;
+    totalLast += extrapolatedLast;
 
     Console.WriteLine();
 }
 
-Console.WriteLine($"Total: {total}");
+Console.WriteLine($"Total first: {totalFirst}");
+Console.WriteLine($"Total last: {totalLast}");
