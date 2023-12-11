@@ -8,7 +8,10 @@ for (var i = 0; i < input[0].Count(); i++)
         // Insert space into all lines.
         for (var j = 0; j < input.Count; j++)
         {
-            input[j] = input[j].Insert(i, ".");
+            var line = input[j].ToCharArray();
+            line[i] = '|';
+            
+            input[j] = new string(line);
         }
 
         i++;
@@ -21,10 +24,7 @@ for (var i = 0; i < input.Count; i++)
     if (!input[i].Contains('#'))
     {
         // No galaxies, add a new line.
-        input.Insert(i, input[i]);
-
-        // Dont need to process blank line.
-        i++;
+        input[i] = input[i].Replace('.', '-');
     }
 }
 
@@ -52,11 +52,12 @@ for (var y = 0; y < input.Count; y++)
 }
 
 var pairs = GetPermutations(galaxies, 2);
-var totalDistance = 0;
+var totalDistance = 0l;
+var space = input.Select(l => l.ToCharArray()).ToArray();
 
 foreach (var pair in pairs)
 {
-    var distance = pair.ElementAt(0).DistanceTo(pair.ElementAt(1));
+    var distance = pair.ElementAt(0).DistanceTo(pair.ElementAt(1), space);
 
     totalDistance += distance;
     
@@ -85,11 +86,34 @@ IEnumerable<IEnumerable<T>> GetPermutations<T>(IEnumerable<T> items, int count)
 
 record Galaxy(int Id, int X, int Y)
 {
-    public int DistanceTo(Galaxy other)
-    {
-        var xDiff = Math.Abs(X - other.X);
-        var yDiff = Math.Abs(Y - other.Y);
+    private const int SpaceAge = 1000000;
 
-        return xDiff + yDiff;
+    public int DistanceTo(Galaxy other, char[][] space)
+    {
+        var xMin = Math.Min(X, other.X);
+        var xMax = Math.Max(X, other.X);
+        var yMin = Math.Min(Y, other.Y);
+        var yMax = Math.Max(Y, other.Y);
+
+        var xSpace = 0;
+        var ySpace = 0;
+
+        for (var x = xMin + 1; x < xMax; x++)
+        {
+            if (space[0][x] == '|')
+            {
+                ++xSpace;
+            }
+        }
+
+        for (var y = yMin + 1; y < yMax; y++)
+        {
+            if (space[y][0] == '-')
+            {
+                ++ySpace;
+            }
+        }
+
+        return (xMax - xMin - xSpace) + (yMax - yMin - ySpace) + (xSpace * SpaceAge) + (ySpace * SpaceAge);
     }
 }
