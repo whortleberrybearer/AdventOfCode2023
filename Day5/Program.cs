@@ -19,7 +19,6 @@ for (int lineIndex = 0; lineIndex < lines.Length; lineIndex++)
     if (line.StartsWith("seeds:"))
     {
         seedRanges = ExtractSeedRanges(ref lineIndex);
-        }
     }
     else if (line.StartsWith("seed-to-soil map:"))
     {
@@ -60,25 +59,6 @@ var humidityRanges = MapRanges(tempratureToHumidityMaps!, tempratureRanges);
 var locationRanges = MapRanges(humidityToLocationMaps!, humidityRanges);
 
 Console.WriteLine($"Lowest location: {locationRanges.Select(r => r.Start).Min()}");
-
-    Console.WriteLine($"Seed {seed} is for location {location}");
-}
-
-Console.WriteLine($"Lowest location: {seedsToLocationMap!.Values.Min()}");
-
-long MapValue(IEnumerable<Map> maps, long source)
-{
-    foreach (var map in maps)
-    {
-        if (source >= map.SourceStart && source < (map.SourceStart + map.Length))
-        {
-            return map.DesinationStart + (source - map.SourceStart);
-        }
-    }    
-
-    // No maps found, so return the value.
-    return source;
-}
 
 IEnumerable<Range> MapRanges(IEnumerable<Map> maps, IEnumerable<Range> sourceRanges)
 {
