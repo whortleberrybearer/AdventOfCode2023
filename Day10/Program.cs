@@ -221,77 +221,19 @@ for (var y = 1; y < route.Length; y += 3)
     }
 }
 
-for (var i = 0; i < route.Length; i++)
+for (var y = 1; y < route.Length; y += 3)
 {
-    Console.WriteLine(string.Join("", route[i]));
-}
+    for (var x = 1; x < route[y].Length; x += 3)
+    {
+        Console.Write(route[y][x]);
+    }
 
+    Console.WriteLine();
+}
+ 
 var enclosed = route.Sum(l => l.Count(c => c == 'I'));
 
 Console.WriteLine($"Enclosed: {enclosed}");
-
-/*
-// Cleanup duplicate route.
-for (var y = 0; y < route.Length - 1; y += 2)
-{
-    for (var x = 0; x < route[y].Length - 1; x += 2)
-    {
-        if (route[y][x] == '7')
-        {
-            route[y + 1][x] = '.';
-            route[y][x] = '-';
-            route[y + 1][x + 1] = '|';
-        }
-        else if (route[y][x] == 'J')
-        {
-            route[y][x] = '.';
-            route[y][x + 1] = '|';
-            route[y + 1][x] = '-';
-        }
-        else if (route[y][x] == 'L')
-        {
-            route[y][x] = '|';
-            route[y][x + 1] = '.';
-            route[y + 1][x + 1] = '-';
-        }
-        else if (route[y][x] == 'F')
-        {
-            route[y][x + 1] = '-';
-            route[y + 1][x] = '|';
-            route[y + 1][x + 1] = '.';
-        }
-    }
-}
-
-// Replace any '-' or '|' bounded by a '.'.
-for (var y = 0; y < route.Length - 1; y++)
-{
-    for (var x = 0; x < route[y].Length - 1; x++)
-    {
-        if ((route[y][x] == '.') && (route[y][x + 1] == '-'))
-        {
-            route[y][x + 1] = '.';
-        }
-    }
-}
-
-for (var x = 0; x < route[0].Length - 1; x++)
-{
-    for (var y = 0; y < route.Length - 1; y++)
-    {
-        if ((route[y][x] == '.') && (route[y + 1][x] == '|'))
-        {
-            route[y + 1][x] = '.';
-        }
-    }
-}
-
-for (var i = 0; i < route.Length; i++)
-{
-    Console.WriteLine(string.Join("", route[i]));
-}
-*/
-
 Direction FindStartDirection()
 {
     var east = startX < maxtix[startY].Length - 1 ? maxtix[startY][startX + 1] is '-' or 'J' or '7' : false;
