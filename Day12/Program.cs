@@ -16,15 +16,20 @@ foreach (var line in input)
     rows.Add(new Row(springs, damaged.Split(',').Select(c => int.Parse(c)).ToArray()));
 }
 
-var possibleCombinations = 0;
+var possibleCombinations = 0l;
 
 foreach (var row in rows)
 {
-    var possibleLines = FindPossibleLines(row.Springs, row.Broken);
     
-    possibleCombinations += possibleLines.Count();
+    var possibleLines1 = FindPossibleLines(row.Springs, row.Broken).Count();
+    var possibleLines2 = FindPossibleLines(row.Springs + "?" + row.Springs, row.Broken.Concat(row.Broken).ToArray()).Count();
 
-    Console.WriteLine($"Row: {row.Springs}, Possible: {possibleLines.Count()}");
+    var combinations = (long)Math.Pow((long)(possibleLines2 / possibleLines1), 4) * possibleLines1;
+    // Long time, too low.  19617238612177
+    
+    possibleCombinations += combinations;
+
+    Console.WriteLine($"Row: {row.Springs}, Possible: {combinations}");
     Console.WriteLine();
 }
 
