@@ -39,21 +39,19 @@ foreach (var map in maps)
 
         Console.WriteLine($"Row mirror at: {map.Row}");
     }
-    
-    mirror = FindColumnMirror(map.Locations);
 
-    if (mirror > -1)
+    if (mirror == -1)
     {
-        map.Column = mirror + 1;
+        mirror = FindColumnMirror(map.Locations);
 
-        Console.WriteLine($"Column mirror at: {map.Column}");
+        if (mirror > -1)
+        {
+            map.Column = mirror + 1;
+
+            Console.WriteLine($"Column mirror at: {map.Column}");
+        }
     }
 
-    if ((map.Column == 0) && (map.Row == 0))
-    {
-        var i = 0;
-    }
-    
     Console.WriteLine();
 }
 
@@ -65,7 +63,20 @@ int FindRowMirror(char[][] map)
 {
     for (var i = 0; i < map[0].Length - 1; i++)
     {
-        if (map.All(r => CompareReflection(r, i)))
+        var reflection = true;
+        var canSmudge = true;
+
+        for (var j = 0; j < map.Length; j++)
+        {
+            if (!CompareReflection(map[j], i, ref canSmudge))
+            {
+                reflection = false;
+                break;
+            }
+        }
+
+        // Ignore any reflections that have not been smudged.
+        if (reflection && !canSmudge)
         {
             return i;
         }
@@ -79,20 +90,22 @@ int FindColumnMirror(char[][] map)
     for (var i = 0; i < map.Length - 1; i++)
     {
         var reflection = true;
+        var canSmudge = true;
 
         // Can treat a column line a row.
         for (int j = 0; j < map[0].Length; j++)
         {
             var column = map.Select(r => r[j]).ToArray();
 
-            if (!CompareReflection(column, i))
+            if (!CompareReflection(column, i, ref canSmudge))
             {
                 reflection = false;
                 break;
             }
         }
 
-        if (reflection)
+        // Ignore any reflections that have not been smudged.
+        if (reflection && !canSmudge)
         {
             return i;
         }
@@ -101,7 +114,7 @@ int FindColumnMirror(char[][] map)
     return -1;
 }
 
-bool CompareReflection(char[] line, int position)
+bool CompareReflection(char[] line, int position, ref bool canSmudge)
 {
     var reflectBack = position;
     var reflectForward = position + 1;
@@ -110,15 +123,22 @@ bool CompareReflection(char[] line, int position)
     {
         if (line[reflectBack] != line[reflectForward])
         {
-            // Not a matching row.
-            return false;
+            // Not a matching row.  If can smudge, allow to continue as it has changed.
+            if (canSmudge)
+            {
+                canSmudge = false;
+            }
+            else
+            {
+                return false;   
+            }
         }
 
         // Move out to the next reflection.
         --reflectBack;
         ++reflectForward;
     }
-
+    
     return true;
 }
 
