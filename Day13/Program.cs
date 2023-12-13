@@ -148,6 +148,3 @@ record Map(char[][] Locations)
     
     public int Column { get; set; }
 };
-
-
-// 32414 == too low
