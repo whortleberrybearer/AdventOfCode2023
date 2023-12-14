@@ -31,19 +31,11 @@ while ((rotationsHash.LongCount() < 1000000000l) && (repeatIndex == -1))
     }
 }
 
-long xxxx = rotationsHash.Count();
+var offset = ((1000000000 - (repeatIndex + 1)) % (rotationsHash.Count() - repeatIndex)) + repeatIndex;
 
-var fff = (1000000000 - (repeatIndex + 1)) % (rotationsHash.Count() - repeatIndex);
-
-// Will continually do 7 steps.
-/// Must be 5.
-var yyy = fff + repeatIndex;
-
-var totalLoad = CalculateTotalLoad(rotationsHash[yyy].Split("|").Select(l => l.ToCharArray()).ToArray());
+var totalLoad = CalculateTotalLoad(rotationsHash[offset].Split("|").Select(l => l.ToCharArray()).ToArray());
 
 Console.WriteLine($"Total load: {totalLoad}");
-
-// 105484 too low.
 
 void TiltPanelNorth()
 {
