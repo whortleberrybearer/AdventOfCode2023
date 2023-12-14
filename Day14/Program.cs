@@ -1,5 +1,6 @@
 ﻿var input = File.ReadLines("Input.txt").ToArray();
 var panel = new char[input.Count()][];
+var rotationsHash = new List<string>();
 
 for (var i = 0; i < input.Count(); i++)
 {
@@ -11,41 +12,38 @@ for (var i = 0; i < input.Count(); i++)
 }
 
 Console.WriteLine();
+var repeatIndex = -1;
 
-TiltPanelNorth();
-TiltPanelWest();
-TiltPanelSouth();
-TiltPanelEast();
-
-TiltPanelNorth();
-TiltPanelWest();
-TiltPanelSouth();
-TiltPanelEast();
-
-TiltPanelNorth();
-TiltPanelWest();
-TiltPanelSouth();
-TiltPanelEast();
-
-foreach (var line in panel)
+while ((rotationsHash.LongCount() < 1000000000l) && (repeatIndex == -1))
 {
-    Console.WriteLine(new string(line));
-}
+    TiltPanelNorth();
+    TiltPanelWest();
+    TiltPanelSouth();
+    TiltPanelEast();
 
-var totalLoad = 0;
+    var hash = string.Join("|", panel.Select(l => new string(l)));
 
-for (var i = 0; i < panel.Length; i++)
-{
-    var multiplier = panel.Length - i;
-
-    var load = panel[i].Count(c => c == 'O') * multiplier;
+    repeatIndex = rotationsHash.IndexOf(hash);
     
-    Console.WriteLine($"Line: {multiplier}, Load: {load}");
-
-    totalLoad += load;
+    if (repeatIndex == -1)
+    {
+        rotationsHash.Add(hash);
+    }
 }
+
+long xxxx = rotationsHash.Count();
+
+var fff = (1000000000 - (repeatIndex + 1)) % (rotationsHash.Count() - repeatIndex);
+
+// Will continually do 7 steps.
+/// Must be 5.
+var yyy = fff + repeatIndex;
+
+var totalLoad = CalculateTotalLoad(rotationsHash[yyy].Split("|").Select(l => l.ToCharArray()).ToArray());
 
 Console.WriteLine($"Total load: {totalLoad}");
+
+// 105484 too low.
 
 void TiltPanelNorth()
 {
@@ -151,7 +149,6 @@ void MoveSouthIfAvailable(int y, int x)
     }
 }
 
-
 void MoveWestIfAvailable(int y, int x)
 {
     if (x == 0)
@@ -166,4 +163,22 @@ void MoveWestIfAvailable(int y, int x)
         
         MoveWestIfAvailable(y, x - 1);
     }
+}
+
+int CalculateTotalLoad(char[][] panel)
+{
+    var totalLoad = 0;
+    
+    for (var i = 0; i < panel.Length; i++)
+    {
+        var multiplier = panel.Length - i;
+
+        var load = panel[i].Count(c => c == 'O') * multiplier;
+    
+        Console.WriteLine($"Line: {multiplier}, Load: {load}");
+
+        totalLoad += load;
+    }
+
+    return totalLoad;
 }
