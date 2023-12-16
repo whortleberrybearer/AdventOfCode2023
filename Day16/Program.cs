@@ -12,23 +12,74 @@ for (var i = 0; i < input.Length; i++)
     energizedGrid[i] = Enumerable.Repeat(string.Empty, grid[i].Length).ToArray();
 }
 
-Move(0, 0, 1, 0);
+// There are that many combinations, so brute force the answer.  It didn't take too long.
+var maxEnergized = 0;
 
-Console.WriteLine();
-
-foreach (var line in energizedGrid)
+for (var y = 0; y < grid.Length; y++)
 {
-    foreach (var s in line)
+    var energized = CalculateEnergizesGrid(0, y, 1, 0);
+
+    if (energized > maxEnergized)
     {
-        Console.Write(s == string.Empty ? "." : "#");
+        maxEnergized = energized;
     }
 
-    Console.WriteLine();
+    energized = CalculateEnergizesGrid(grid[y].Length - 1, y, -1, 0);
+
+    if (energized > maxEnergized)
+    {
+        maxEnergized = energized;
+    }
 }
 
-var energized = energizedGrid.Sum(l => l.Count(c => c != string.Empty));
+for (var x = 0; x < grid[0].Length; x++)
+{
+    var energized = CalculateEnergizesGrid(x, 0, 0, 1);
 
-Console.WriteLine($"Energized: {energized}");
+    if (energized > maxEnergized)
+    {
+        maxEnergized = energized;
+    }
+
+    energized = CalculateEnergizesGrid(x, grid.Length - 1, 0, -1);
+
+    if (energized > maxEnergized)
+    {
+        maxEnergized = energized;
+    }
+}
+
+Console.WriteLine($"Max energized: {maxEnergized}");
+
+int CalculateEnergizesGrid(int x, int y, int moveX, int moveY)
+{
+    // Reset grid.
+    energizedGrid = new string[grid.Length][];
+
+    for (var i = 0; i < energizedGrid.Length; i++)
+    {
+        energizedGrid[i] = Enumerable.Repeat(string.Empty, grid[i].Length).ToArray();
+    }
+        
+    Move(x, y, moveX, moveY);
+
+    foreach (var line in energizedGrid)
+    {
+        foreach (var s in line)
+        {
+            Console.Write(s == string.Empty ? "." : "#");
+        }
+
+        Console.WriteLine();
+    }
+
+    var energized = energizedGrid.Sum(l => l.Count(c => c != string.Empty));
+
+    Console.WriteLine($"Energized: {energized}");
+    Console.WriteLine();
+
+    return energized;
+}
 
 void Move(int x, int y, int moveX, int moveY)
 {
