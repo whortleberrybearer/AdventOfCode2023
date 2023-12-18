@@ -55,6 +55,11 @@ do
     {
         var curentShortest = shortestPaths[newPath.Y][newPath.X];
 
+        if ((curentShortest != null) && (newPath.TotalLoss > (curentShortest.TotalLoss + 20)))
+        {
+            continue;
+        }
+
         if ((curentShortest == null) ||
             ((newPath.TotalLoss < curentShortest.TotalLoss) && (newPath.DirectionMoves <= curentShortest.DirectionMoves)))
         {
@@ -117,11 +122,6 @@ class Path
     public IEnumerable<Path> Move()
     {
         var nextPaths = new List<Path>();
-
-        if (Previous.Count > 300)
-        {
-            return nextPaths;
-        }
 
         if ((DirectionMoves < 3) && CanMove(X + MoveX, Y + MoveY))
         {
