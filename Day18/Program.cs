@@ -7,11 +7,31 @@ foreach (var line in input)
 
     var parts = line.Split(' ');
 
-    planLines.Add(new Plan(parts[0], int.Parse(parts[1]), parts[2]));
+    planLines.Add(new Plan(parts[0], int.Parse(parts[1]), parts[2].Trim('(', ')', '#')));
 }
 
 Console.WriteLine();
 
+/*
+// Recode the lines.
+var newPlanLines = new List<Plan>();
+
+foreach (var planLine in planLines)
+{
+    var direction = planLine.Colour[5] switch
+    {
+        '0' => "R",
+        '1' => "D",
+        '2' => "L",
+        '3' => "U",
+    };
+    var amount = int.Parse(planLine.Colour[0..5], System.Globalization.NumberStyles.HexNumber);
+    
+    newPlanLines.Add(new Plan(direction, amount, string.Empty));
+}
+
+planLines = newPlanLines;
+*/
 // Dont know the size of the grid, but a theoretical size is the max right and down movements.
 var width = planLines.Where(l => l.Direction == "R").Sum(l => l.Amount + 1) + planLines.Where(l => l.Direction == "L").Sum(l => l.Amount + 1);
 var height = planLines.Where(l => l.Direction == "D").Sum(l => l.Amount + 1) + planLines.Where(l => l.Direction == "U").Sum(l => l.Amount + 1);
@@ -28,6 +48,8 @@ var y = height / 2;
 
 foreach (var planLine in planLines)
 {
+    Console.WriteLine($"Direction: {planLine.Direction}, Amount: {planLine.Amount}");
+    
     for (var i = 0; i < planLine.Amount; i++)
     {
         plan[y][x] = '#';
@@ -50,6 +72,8 @@ foreach (var planLine in planLines)
         }
     }
 }
+
+Console.WriteLine("Filling");
 
 // Mark anything not enclosed;
 for (var i = 0; i < plan.Length; i++)
@@ -109,12 +133,14 @@ do
 }
 while (replaced);
 
+/*
 foreach (var line in plan)
 {
     Console.WriteLine(string.Concat(line));
 }
+*/
 
-var digArea = plan.Sum(p => p.Count(c => c == '.' || c == '#'));
+var digArea = plan.Sum(p => p.LongCount(c => c == '.' || c == '#'));
 
 Console.WriteLine($"Dig area: {digArea}");
 
