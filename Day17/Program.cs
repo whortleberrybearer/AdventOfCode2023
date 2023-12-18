@@ -55,7 +55,7 @@ do
     {
         var curentShortest = shortestPaths[newPath.Y][newPath.X];
 
-        if ((curentShortest != null) && (newPath.TotalLoss > (curentShortest.TotalLoss + 20)))
+        if ((curentShortest != null) && (newPath.TotalLoss > (curentShortest.TotalLoss + 50)))
         {
             continue;
         }
