@@ -56,7 +56,7 @@ while (!string.IsNullOrEmpty(line))
 Console.WriteLine();
 
 var accepted = new List<Part>();
-
+/*
 foreach (var part in parts)
 {
     // Start the workflow on the "In" key.
@@ -75,8 +75,96 @@ foreach (var part in parts)
         accepted.Add(part);
     }
 }
-
+*/
 Console.WriteLine($"Total value: {accepted.Sum(p => p.TotalValue)}");
+
+
+var ranges = Something(
+    workflows["in"],
+    new PartRange(new Dictionary<string, Range>()
+    {
+        { "x", new Range() },
+        { "m", new Range() },
+        { "a", new Range() },
+        { "s", new Range() }
+    }));
+
+var dsfas = 0;
+
+IEnumerable<PartRange> Something(Workflow workflow, PartRange partRange)
+{
+    var ranges = new List<PartRange>();
+
+    foreach (var condition in workflow.Conditions)
+    {
+        if (condition.Action != "R")
+        {
+            var newRange = CopyRange(partRange);
+
+            if (condition.Operation == ">")
+            {
+                newRange.Values[condition.Character].Min =
+                    Math.Max(newRange.Values[condition.Character].Min, condition.Value + 1);
+            }
+            else if (condition.Operation == "<")
+            {
+                newRange.Values[condition.Character].Max =
+                    Math.Min(newRange.Values[condition.Character].Max, condition.Value - 1);
+            }
+
+            if (condition.Action == "A")
+            {
+                ranges.Add(newRange);
+            }
+            else
+            {
+                ranges.AddRange(Something(workflows[condition.Action], newRange));
+            }
+        }
+    }
+
+    // The default action is the inverse of all the conditions.
+    if (workflow.Default != "R")
+    {
+        var newRange = CopyRange(partRange);
+        
+        foreach (var condition in workflow.Conditions)
+        {
+            if (condition.Operation == ">")
+            {
+                newRange.Values[condition.Character].Max =
+                    Math.Min(newRange.Values[condition.Character].Max, condition.Value);
+            }
+            else if (condition.Operation == "<")
+            {
+                newRange.Values[condition.Character].Min =
+                    Math.Max(newRange.Values[condition.Character].Min, condition.Value);
+            }
+        }
+
+        if (workflow.Default == "A")
+        {
+            ranges.Add(newRange);
+        }
+        else
+        {
+            ranges.AddRange(Something(workflows[workflow.Default], newRange));
+        }
+    }
+
+    return ranges;
+}
+
+PartRange CopyRange(PartRange range)
+{
+    return new PartRange(new Dictionary<string, Range>()
+    {
+        { "x", new Range() { Min = range.Values["x"].Min, Max = range.Values["x"].Max }},
+        { "m", new Range() { Min = range.Values["m"].Min, Max = range.Values["m"].Max }},
+        { "a", new Range() { Min = range.Values["a"].Min, Max = range.Values["a"].Max }},
+        { "s", new Range() { Min = range.Values["s"].Min, Max = range.Values["s"].Max }},
+    });
+}
 
 record Workflow(string Id, IEnumerable<WorkflowCondition> Conditions, string Default)
 {
@@ -112,3 +200,12 @@ record Part(Dictionary<string, int> Values)
 {
     public int TotalValue => Values.Values.Sum(v => v);
 }
+
+record Range
+{
+    public int Min { get; set; } = 1;
+
+    public int Max { get; set; } = 4000;
+};
+
+record PartRange(Dictionary<string, Range> Values);
