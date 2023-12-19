@@ -20,22 +20,22 @@ for (var lineIndex = 0; lineIndex < input.Length; lineIndex++)
     }
 }
 
-paths.Add(new Path(1, 0, new List<Vector2>())
+paths.Add(new Path(4, 0, new List<Vector2>())
 {
     MoveX = 1,
     MoveY = 0,
-    DirectionMoves = 1,
-    TotalLoss = map[0][1],
+    DirectionMoves = 4,
+    TotalLoss = map[0][1] + map[0][2] + map[0][3] + map[0][4],
     Map = map,
 });
 visitedPaths[0][1].Add(paths[0]);
 
-paths.Add(new Path(0, 1, new List<Vector2>())
+paths.Add(new Path(0, 4, new List<Vector2>())
 {
     MoveX = 0,
     MoveY = 1,
-    DirectionMoves = 1,
-    TotalLoss = map[1][0],
+    DirectionMoves = 4,
+    TotalLoss = map[1][0] + map[2][0] + map[3][0] + map[4][0],
     Map = map,
 });
 visitedPaths[1][0].Add(paths[1]);
@@ -114,7 +114,7 @@ class Path
     {
         var nextPaths = new List<Path>();
 
-        if ((DirectionMoves < 3) && CanMove(X + MoveX, Y + MoveY))
+        if ((DirectionMoves < 10) && CanMove(X + MoveX, Y + MoveY))
         {
             nextPaths.Add(
                 new Path(X + MoveX, Y + MoveY, Previous)
@@ -129,28 +129,28 @@ class Path
 
         if (MoveX != 0)
         {
-            if (CanMove(X, Y - 1))
+            if (CanMove(X, Y - 4))
             {
                 nextPaths.Add(
-                    new Path(X, Y - 1, Previous)
+                    new Path(X, Y - 4, Previous)
                     {
                         MoveX = 0,
                         MoveY = -1,
-                        DirectionMoves = 1,
-                        TotalLoss = TotalLoss + Map[Y - 1][X],
+                        DirectionMoves = 4,
+                        TotalLoss = TotalLoss + Map[Y - 1][X] + Map[Y - 2][X] + Map[Y - 3][X] + Map[Y - 4][X],
                         Map = Map,
                     });
             }
 
-            if (CanMove(X, Y + 1))
+            if (CanMove(X, Y + 4))
             {
                 nextPaths.Add(
-                    new Path(X, Y + 1, Previous)
+                    new Path(X, Y + 4, Previous)
                     {
                         MoveX = 0,
                         MoveY = 1,
-                        DirectionMoves = 1,
-                        TotalLoss = TotalLoss + Map[Y + 1][X],
+                        DirectionMoves = 4,
+                        TotalLoss = TotalLoss + Map[Y + 1][X] + Map[Y + 2][X] + Map[Y + 3][X] + Map[Y + 4][X],
                         Map = Map,
                     });
             }
@@ -158,28 +158,28 @@ class Path
 
         if (MoveY != 0)
         {
-            if (CanMove(X - 1, Y))
+            if (CanMove(X - 4, Y))
             {
                 nextPaths.Add(
-                    new Path(X - 1, Y, Previous)
+                    new Path(X - 4, Y, Previous)
                     {
                         MoveX = -1,
                         MoveY = 0,
-                        DirectionMoves = 1,
-                        TotalLoss = TotalLoss + Map[Y][X - 1],
+                        DirectionMoves = 4,
+                        TotalLoss = TotalLoss + Map[Y][X - 1] + Map[Y][X - 2] + Map[Y][X - 3] + Map[Y][X - 4],
                         Map = Map,
                     });
             }
 
-            if (CanMove(X + 1, Y))
+            if (CanMove(X + 4, Y))
             {
                 nextPaths.Add(
-                    new Path(X + 1, Y, Previous)
+                    new Path(X + 4, Y, Previous)
                     {
                         MoveX = 1,
                         MoveY = 0,
-                        DirectionMoves = 1,
-                        TotalLoss = TotalLoss + Map[Y][X + 1],
+                        DirectionMoves = 4,
+                        TotalLoss = TotalLoss + Map[Y][X + 1] + Map[Y][X + 2] + Map[Y][X + 3] + Map[Y][X + 4],
                         Map = Map,
                     });
             }
