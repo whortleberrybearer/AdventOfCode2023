@@ -36,40 +36,68 @@ planLines = newPlanLines;
 var width = planLines.Where(l => l.Direction == "R").Sum(l => l.Amount + 1) + planLines.Where(l => l.Direction == "L").Sum(l => l.Amount + 1);
 var height = planLines.Where(l => l.Direction == "D").Sum(l => l.Amount + 1) + planLines.Where(l => l.Direction == "U").Sum(l => l.Amount + 1);
 
-var plan = new char[height][];
+width /= 100;
+height /= 100;
+
+var plan = new int[height][];
 
 for (var i = 0; i < plan.Length; i++)
 {
-    plan[i] = Enumerable.Repeat('.', width).ToArray();
+    plan[i] = Enumerable.Repeat(-1, width).ToArray();
 }
 
 var x = width / 2;
 var y = height / 2;
+var xVal = 100;
+var yVal = 100;
 
 foreach (var planLine in planLines)
 {
     Console.WriteLine($"Direction: {planLine.Direction}, Amount: {planLine.Amount}");
     
-    for (var i = 0; i < planLine.Amount; i++)
+    for (var i = 0; i < planLine.Amount / 100; i++)
     {
-        plan[y][x] = '#';
-        
         if (planLine.Direction == "R")
         {
+            plan[y][x] = 100 * yVal;
             ++x;
         }
         else if (planLine.Direction == "L")
         {
+            plan[y][x] = 100 * yVal;
             --x;
         }
         else if (planLine.Direction == "U")
         {
+            plan[y][x] = 100 * xVal;
             --y;
         }
         else if (planLine.Direction == "D")
         {
+            plan[y][x] = 100 * xVal;
             ++y;
         }
+    }
+    
+    if (planLine.Direction == "R")
+    {
+        xVal = planLine.Amount % 100;
+        plan[y][x] = xVal * yVal;
+    }
+    else if (planLine.Direction == "L")
+    {
+        xVal = planLine.Amount % 100;
+        plan[y][x] = xVal * yVal;
+    }
+    else if (planLine.Direction == "U")
+    {
+        yVal = planLine.Amount % 100;
+        plan[y][x] = xVal * yVal;
+    }
+    else if (planLine.Direction == "D")
+    {
+        yVal = planLine.Amount % 100;
+        plan[y][x] = xVal * yVal;
     }
 }
 
@@ -78,27 +106,27 @@ Console.WriteLine("Filling");
 // Mark anything not enclosed;
 for (var i = 0; i < plan.Length; i++)
 {
-    if (plan[i][0] == '.')
+    if (plan[i][0] == -1)
     {
-        plan[i][0] = '0';
+        plan[i][0] = 0;
     }
     
-    if (plan[i][plan[y].Length - 1] == '.')
+    if (plan[i][plan[y].Length - 1] == -1)
     {
-        plan[i][plan[y].Length - 1] = '0';
+        plan[i][plan[y].Length - 1] = 0;
     }
 }
 
 for (var i = 0; i < plan[0].Length; i++)
 {
-    if (plan[0][i] == '.')
+    if (plan[0][i] == -1)
     {
-        plan[0][i] = '0';
+        plan[0][i] = 0;
     }
     
-    if (plan[plan.Length - 1][i] == '.')
+    if (plan[plan.Length - 1][i] == -1)
     {
-        plan[plan.Length - 1][i] = '0';
+        plan[plan.Length - 1][i] = 0;
     }
 }
 
@@ -112,16 +140,16 @@ do
     {
         for (x = 1; x < plan[y].Length - 1; x++)
         {
-            if (plan[y][x] == '.')
+            if (plan[y][x] == -1)
             {
                 // If next to a 0, not enclosed.
                 for (var i = y - 1; i <= y + 1; i++)
                 {
                     for (var j = x - 1; j <= x + 1; j++)
                     {
-                        if (plan[i][j] == '0')
+                        if (plan[i][j] == 0)
                         {
-                            plan[y][x] = '0';
+                            plan[y][x] = 0;
 
                             replaced = true;
                         }
@@ -133,14 +161,13 @@ do
 }
 while (replaced);
 
-/*
+
 foreach (var line in plan)
 {
     Console.WriteLine(string.Concat(line));
 }
-*/
 
-var digArea = plan.Sum(p => p.LongCount(c => c == '.' || c == '#'));
+var digArea = plan.Sum(p => p.LongCount(c => c != 0));
 
 Console.WriteLine($"Dig area: {digArea}");
 
