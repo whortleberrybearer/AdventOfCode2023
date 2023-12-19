@@ -3,8 +3,7 @@
 var input = File.ReadAllLines("Input.txt");
 var map = new int[input.Length][];
 var paths = new List<Path>();
-var minimumHeatLoss = int.MaxValue;
-var shortestPaths = new Path[input.Length][];
+var visitedPaths = new List<Path>[input.Length][];
 
 for (var lineIndex = 0; lineIndex < input.Length; lineIndex++)
 {
@@ -13,7 +12,12 @@ for (var lineIndex = 0; lineIndex < input.Length; lineIndex++)
     Console.WriteLine($"Line: {line}");
 
     map[lineIndex] = line.Select(c => int.Parse(c.ToString())).ToArray();
-    shortestPaths[lineIndex] = new Path[map[lineIndex].Length];
+    visitedPaths[lineIndex] = new List<Path>[map[lineIndex].Length];
+
+    for (var i = 0; i < map[lineIndex].Length; i++)
+    {
+        visitedPaths[lineIndex][i] = new List<Path>();
+    }
 }
 
 paths.Add(new Path(1, 0, new List<Vector2>())
@@ -24,7 +28,7 @@ paths.Add(new Path(1, 0, new List<Vector2>())
     TotalLoss = map[0][1],
     Map = map,
 });
-shortestPaths[0][1] = paths[0];
+visitedPaths[0][1].Add(paths[0]);
 
 paths.Add(new Path(0, 1, new List<Vector2>())
 {
@@ -34,7 +38,7 @@ paths.Add(new Path(0, 1, new List<Vector2>())
     TotalLoss = map[1][0],
     Map = map,
 });
-shortestPaths[1][0] = paths[1];
+visitedPaths[1][0].Add(paths[1]);
 
 Path? shortestPath = null;
 
@@ -53,30 +57,17 @@ do
 
     foreach (var newPath in newPaths)
     {
-        var curentShortest = shortestPaths[newPath.Y][newPath.X];
+        var directionVisited = visitedPaths[newPath.Y][newPath.X].Where(p => p.MoveX == newPath.MoveX && p.MoveY == newPath.MoveY);
 
-        if ((curentShortest != null) && (newPath.TotalLoss > (curentShortest.TotalLoss + 20)))
+        if ((directionVisited.Count() > 0) && directionVisited.Any(p => (p.TotalLoss <= newPath.TotalLoss) && (p.DirectionMoves <= newPath.DirectionMoves)))
         {
+            // We have previously been through here with a better score and fever moves, so no point continuing.
             continue;
         }
-
-        if ((curentShortest == null) ||
-            ((newPath.TotalLoss < curentShortest.TotalLoss) && (newPath.DirectionMoves <= curentShortest.DirectionMoves)))
+        else
         {
-            // This is the best way of getting here, so remove any other paths.
-            paths.RemoveAll(p => p.X == newPath.X && p.Y == newPath.Y);
-
-            shortestPaths[newPath.Y][newPath.X] = newPath;
-
+            visitedPaths[newPath.Y][newPath.X].Add(newPath);
             paths.Add(newPath);
-        }
-        else if ((newPath.TotalLoss <= curentShortest.TotalLoss) || (newPath.DirectionMoves < curentShortest.DirectionMoves))
-        {
-            if (!paths.Any(p => p.X == newPath.X && p.Y == newPath.Y && p.TotalLoss <= newPath.TotalLoss && p.DirectionMoves < newPath.DirectionMoves))
-            {
-                paths.Add(newPath);
-                paths.RemoveAll(p => p.X == newPath.X && p.Y == newPath.Y && p.TotalLoss > newPath.TotalLoss && p.DirectionMoves >= newPath.DirectionMoves);
-            }
         }
     }
 
