@@ -65,6 +65,12 @@ var pulsesSent = new List<PulsesSent>();
 var endStates = new List<string>();
 var repeatIndex = -1;
 var rx = modules["rx"];
+var rxParentsCycles = new Dictionary<Module, int>();
+
+foreach (var link in modules.Values.Where(m => m.Links.Contains(rx)))
+{
+    rxParentsCycles.Add(link, -1);
+}
 
 do
 {
@@ -81,13 +87,18 @@ do
         pulsesSent.Add(sent);
     }
 
+    foreach (var link in broadcaster.Links)
+    {
+        link.CheckSentLow(pulsesSent.Count);
+    }
+    
     if (rx.ReceivedLow)
     {
         Console.WriteLine($"RX low after presses: {pulsesSent.Count}");
         break;
     }
 } 
-while (!rx.ReceivedLow);
+while (broadcaster.Links.Any(l => l.RepeatIndex == -1));
 //while (repeatIndex == -1 && pulsesSent.Count < 1000);
 
 if (repeatIndex == -1)
@@ -121,6 +132,8 @@ record Module(string Id)
     // Need to track the received low on the rx module.
     public bool ReceivedLow { get; private set; }
 
+    public bool SentLow { get; protected set; } = false;
+    
     public virtual IEnumerable<NextPulse> SendPulse(bool high, string source)
     {
         if (!high)
@@ -130,6 +143,26 @@ record Module(string Id)
 
         // Untyped module.  Do nothing.
         return Enumerable.Empty<NextPulse>();
+    }
+
+    public int RepeatIndex { get; private set; } = -1;
+    public int FirstSet { get; private set; } = -1;
+    
+    public void CheckSentLow(int pressCount)
+    {
+        if (SentLow)
+        {
+            if (FirstSet == -1)
+            {
+                FirstSet = pressCount;
+                SentLow = false;
+            }
+
+            if (RepeatIndex == -1 && FirstSet > -1)
+            {
+                RepeatIndex = pressCount;
+            }
+        }
     }
 }
 
@@ -203,6 +236,11 @@ record FlipFlopModule(string Id) : Module(Id)
             {
                 nextPulses.Add(new NextPulse(link, On, Id));
             }
+
+            if (!On)
+            {
+                SentLow = true;
+            }
         }
 
         return nextPulses;
@@ -221,12 +259,17 @@ record ConjunctionModule(string Id) : Module(Id)
 
         ConnectedStates[source] = high;
 
+        // Send high pulse if not all high.
+        var nextPulse = ConnectedStates.Values.Any(s => s != true);
+        
         foreach (var link in Links)
         {
-            // Send high pulse if not all high.
-            var nextPulse = ConnectedStates.Values.Any(s => s != true);
-            
             nextPulses.Add(new NextPulse(link, nextPulse, Id));
+        }
+
+        if (!nextPulse)
+        {
+            SentLow = true;
         }
 
         return nextPulses;
