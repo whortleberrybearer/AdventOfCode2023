@@ -1,4 +1,6 @@
-﻿var input = File.ReadAllLines("Input.txt");
+﻿using Arithmetic;
+
+var input = File.ReadAllLines("Input.txt");
 var modules = new Dictionary<string, Module>();
 
 Console.WriteLine("Populating modules");
@@ -64,6 +66,13 @@ var broadcaster = modules["broadcaster"] as BroadcastModule;
 var pulsesSent = new List<PulsesSent>();
 var endStates = new List<string>();
 var repeatIndex = -1;
+var rx = modules["kj"]; // Cheating here as this is what the rx parent is.
+var rxParentsCycles = new Dictionary<string, int>();
+
+foreach (var link in modules.Values.Where(m => m.Links.Contains(rx)))
+{
+    rxParentsCycles.Add(link.Id, -1);
+}
 
 do
 {
@@ -76,13 +85,38 @@ do
 
     if (repeatIndex == -1)
     {
-        endStates.Add(states);   
+        endStates.Add(states);
         pulsesSent.Add(sent);
     }
-} 
-while (repeatIndex == -1 && pulsesSent.Count < 1000);
 
-if (repeatIndex == -1)
+    foreach (var link in rxParentsCycles.ToArray())
+    {
+        // Cheating a bit here, as know the parent is a conjunction box, to just finding the cycle time for them to send
+        // a high.
+        if (link.Value == -1 && modules[link.Key].SentHigh)
+        {
+            Console.WriteLine($"{link.Key} cycle time: {pulsesSent.Count}");
+
+            rxParentsCycles[link.Key] = pulsesSent.Count;
+        }
+    }
+    
+    if (rx.ReceivedLow)
+    {
+        Console.WriteLine($"RX low after presses: {pulsesSent.Count}");
+        break;
+    }
+} 
+while (rxParentsCycles.Values.Any(v => v == -1));
+//while (repeatIndex == -1 && pulsesSent.Count < 1000);
+
+LCM lcm = new LCM(rxParentsCycles.Values.ToList());
+
+var total = lcm.getLCM();
+
+Console.WriteLine($"Total: {total}");
+
+/*if (repeatIndex == -1)
 {
     repeatIndex = 0;
 }
@@ -103,18 +137,32 @@ lowSent += pulsesSent.Skip(repeatIndex).Take(remainder).Sum(s => s.Low);
 var totalSent = highSent * lowSent;
 
 Console.WriteLine($"Pulses sent: {totalSent}");
+*/
 
 record Module(string Id)
 {
     public List<Module> Links { get; } = new List<Module>();
 
     public virtual string State => string.Empty;
+    
+    // Need to track the received low on the rx module.
+    public bool ReceivedLow { get; private set; }
 
+    public bool SentHigh { get; protected set; } = false;
+    
     public virtual IEnumerable<NextPulse> SendPulse(bool high, string source)
     {
+        if (!high)
+        {
+            ReceivedLow = true;
+        }
+
         // Untyped module.  Do nothing.
         return Enumerable.Empty<NextPulse>();
     }
+
+    public int RepeatIndex { get; private set; } = -1;
+    public int FirstSet { get; private set; } = -1;
 }
 
 record BroadcastModule(string Id) : Module(Id)
@@ -205,12 +253,17 @@ record ConjunctionModule(string Id) : Module(Id)
 
         ConnectedStates[source] = high;
 
+        // Send high pulse if not all high.
+        var nextPulse = ConnectedStates.Values.Any(s => s != true);
+        
         foreach (var link in Links)
         {
-            // Send high pulse if not all high.
-            var nextPulse = ConnectedStates.Values.Any(s => s != true);
-            
             nextPulses.Add(new NextPulse(link, nextPulse, Id));
+        }
+
+        if (nextPulse)
+        {
+            SentHigh = true;
         }
 
         return nextPulses;
