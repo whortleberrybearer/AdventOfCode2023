@@ -64,6 +64,7 @@ var broadcaster = modules["broadcaster"] as BroadcastModule;
 var pulsesSent = new List<PulsesSent>();
 var endStates = new List<string>();
 var repeatIndex = -1;
+var rx = modules["rx"];
 
 do
 {
@@ -76,11 +77,18 @@ do
 
     if (repeatIndex == -1)
     {
-        endStates.Add(states);   
+        endStates.Add(states);
         pulsesSent.Add(sent);
     }
+
+    if (rx.ReceivedLow)
+    {
+        Console.WriteLine($"RX low after presses: {pulsesSent.Count}");
+        break;
+    }
 } 
-while (repeatIndex == -1 && pulsesSent.Count < 1000);
+while (!rx.ReceivedLow);
+//while (repeatIndex == -1 && pulsesSent.Count < 1000);
 
 if (repeatIndex == -1)
 {
@@ -103,27 +111,23 @@ lowSent += pulsesSent.Skip(repeatIndex).Take(remainder).Sum(s => s.Low);
 var totalSent = highSent * lowSent;
 
 Console.WriteLine($"Pulses sent: {totalSent}");
-/*
-broadcaster.PushButton();
 
-Console.WriteLine();
-
-broadcaster.PushButton();
-
-Console.WriteLine();
-
-broadcaster.PushButton();
-
-var sss = 0;
-*/
 record Module(string Id)
 {
     public List<Module> Links { get; } = new List<Module>();
 
     public virtual string State => string.Empty;
+    
+    // Need to track the received low on the rx module.
+    public bool ReceivedLow { get; private set; }
 
     public virtual IEnumerable<NextPulse> SendPulse(bool high, string source)
     {
+        if (!high)
+        {
+            ReceivedLow = true;
+        }
+
         // Untyped module.  Do nothing.
         return Enumerable.Empty<NextPulse>();
     }
