@@ -103,19 +103,7 @@ lowSent += pulsesSent.Skip(repeatIndex).Take(remainder).Sum(s => s.Low);
 var totalSent = highSent * lowSent;
 
 Console.WriteLine($"Pulses sent: {totalSent}");
-/*
-broadcaster.PushButton();
 
-Console.WriteLine();
-
-broadcaster.PushButton();
-
-Console.WriteLine();
-
-broadcaster.PushButton();
-
-var sss = 0;
-*/
 record Module(string Id)
 {
     public List<Module> Links { get; } = new List<Module>();
