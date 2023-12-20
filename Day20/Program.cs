@@ -67,6 +67,8 @@ var repeatIndex = -1;
 
 do
 {
+    Console.WriteLine($"Button pushed times: {pulsesSent.Count}");
+
     var sent = broadcaster.PushButton();
     var states = string.Concat(modules.Values.Select(m => m.State));
 
@@ -78,7 +80,12 @@ do
         pulsesSent.Add(sent);
     }
 } 
-while (repeatIndex == -1 || pulsesSent.Count == 1000);
+while (repeatIndex == -1 && pulsesSent.Count < 1000);
+
+if (repeatIndex == -1)
+{
+    repeatIndex = 0;
+}
 
 var highSent = pulsesSent.Take(repeatIndex).Sum(s => s.High);
 var lowSent = pulsesSent.Take(repeatIndex).Sum(s => s.Low);
