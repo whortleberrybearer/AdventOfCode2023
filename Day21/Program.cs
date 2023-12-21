@@ -4,7 +4,7 @@ var visited = new char[map.Length, map[0].Length];
 var stepsTaken = new StepsTaken[map.Length, map[0].Length];
 var startX = -1;
 var startY = -1;
-var numberOfSteps = 64;
+var numberOfSteps = 6;
 
 for (var y = 0; y < map.Length; y++)
 {
@@ -14,6 +14,9 @@ for (var y = 0; y < map.Length; y++)
         {
             startX = x;
             startY = y;
+            
+            // Replace with a plot now we know where the start is.
+            map[y][x] = '.';
             break;
         }
     }
@@ -37,12 +40,6 @@ Console.WriteLine();
 
 var total = 0;
 
-if ((numberOfSteps % 2) == 0)
-{
-    // Add 1 for the S
-    total += 1;
-}
-
 for (var y = 0; y < map.Length; y++)
 {
     for (var x = 0; x < map[y].Length; x++)
@@ -52,7 +49,7 @@ for (var y = 0; y < map.Length; y++)
             ++total;
             Console.Write('0');    
         }
-        else if (((numberOfSteps % 2) == 1) && stepsTaken[y, x].Even)
+        else if (((numberOfSteps % 2) == 1) && stepsTaken[y, x].Odd)
         {
             ++total;
             Console.Write('0');    
@@ -110,7 +107,7 @@ Movement? CheckMovement(int x, int y, int movementsRemaining)
         Console.WriteLine($"Moved to X: {x}, Y: {y}");
 
         visited[y, x] = '0';
-        stepsTaken[y, x].Count = movementsRemaining;
+        stepsTaken[y, x].MovesTaken = (numberOfSteps - (movementsRemaining - 1));
 
         if (movementsRemaining > 1)
         {
@@ -140,9 +137,9 @@ record Movement(int X, int Y, int MovementsRemaining);
 
 struct StepsTaken
 {
-    public bool Even => Count % 2 == 1;
+    public bool Even => MovesTaken > 0 && MovesTaken % 2 == 0;
 
-    public bool Odd => Count % 2 == 1;
-    
-    public int Count { get; set; }
+    public bool Odd => MovesTaken > 0 &&MovesTaken % 2 == 1;
+
+    public int MovesTaken { get; set; }
 }
