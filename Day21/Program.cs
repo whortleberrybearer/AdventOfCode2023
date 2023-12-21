@@ -52,7 +52,7 @@ for (var y = 0; y < map.Length; y++)
             ++total;
             Console.Write('0');    
         }
-        else if (((numberOfSteps % 2) == 1) && stepsTaken[y, x].Odd)
+        else if (((numberOfSteps % 2) == 1) && stepsTaken[y, x].Even)
         {
             ++total;
             Console.Write('0');    
@@ -110,15 +110,7 @@ Movement? CheckMovement(int x, int y, int movementsRemaining)
         Console.WriteLine($"Moved to X: {x}, Y: {y}");
 
         visited[y, x] = '0';
-
-        if (((movementsRemaining - 1) % 2) == 0)
-        {
-            stepsTaken[y, x].Even = true;
-        }
-        else if (((movementsRemaining - 1) % 2) == 1)
-        {
-            stepsTaken[y, x].Odd = true;
-        }
+        stepsTaken[y, x].Count = movementsRemaining;
 
         if (movementsRemaining > 1)
         {
@@ -148,6 +140,9 @@ record Movement(int X, int Y, int MovementsRemaining);
 
 struct StepsTaken
 {
-    public bool Even { get; set; }
-    public bool Odd { get; set; }
+    public bool Even => Count % 2 == 1;
+
+    public bool Odd => Count % 2 == 1;
+    
+    public int Count { get; set; }
 }
