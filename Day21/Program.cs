@@ -4,6 +4,7 @@ var visited = new char[map.Length, map[0].Length];
 var stepsTaken = new StepsTaken[map.Length, map[0].Length];
 var startX = -1;
 var startY = -1;
+var numberOfSteps = 64;
 
 for (var y = 0; y < map.Length; y++)
 {
@@ -18,7 +19,7 @@ for (var y = 0; y < map.Length; y++)
     }
 }
 
-var movements = new List<Movement>() { new Movement(startX, startY, 64)};
+var movements = new List<Movement>() { new Movement(startX, startY, numberOfSteps) };
 
 do
 {
@@ -34,14 +35,24 @@ while (movements.Any());
 
 Console.WriteLine();
 
-// Add 1 for the S
-var total = 1;
+var total = 0;
+
+if ((numberOfSteps % 2) == 0)
+{
+    // Add 1 for the S
+    total += 1;
+}
 
 for (var y = 0; y < map.Length; y++)
 {
     for (var x = 0; x < map[y].Length; x++)
     {
-        if (stepsTaken[y, x].Odd)
+        if (((numberOfSteps % 2) == 0) && stepsTaken[y, x].Even)
+        {
+            ++total;
+            Console.Write('0');    
+        }
+        else if (((numberOfSteps % 2) == 1) && stepsTaken[y, x].Odd)
         {
             ++total;
             Console.Write('0');    
@@ -100,11 +111,11 @@ Movement? CheckMovement(int x, int y, int movementsRemaining)
 
         visited[y, x] = '0';
 
-        if ((movementsRemaining % 2) == 0)
+        if (((movementsRemaining - 1) % 2) == 0)
         {
             stepsTaken[y, x].Even = true;
         }
-        else
+        else if (((movementsRemaining - 1) % 2) == 1)
         {
             stepsTaken[y, x].Odd = true;
         }
