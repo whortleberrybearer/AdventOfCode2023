@@ -163,19 +163,21 @@ foreach (var brick in bricks.Values)
 Console.WriteLine($"Total can remove: {bricksPossibleToRemove.Count()}");
 Console.WriteLine();
 
-var totalFallingBricks = 0;
+var fallingBricks = new Dictionary<Brick, int>();
 
 foreach (var brick in bricks.Values)
 {
-    var bricksThatWillFall = CalculateFallingBricks(brick, new List<Brick>());
-    
-    Console.WriteLine($"Brick: {brick.Id}, Falling: {bricksThatWillFall.Count()}");
+    var falling = CalculateFallingBricks(brick, new List<Brick>());
 
-    totalFallingBricks += bricksThatWillFall.Count();
+    fallingBricks.Add(brick, falling.Count());
+    
+    Console.WriteLine($"Brick: {brick.Id}, Falling: {falling.Count()}");
 }
 
-Console.WriteLine($"Total falling bricks: {totalFallingBricks}");
+Console.WriteLine($"Total falling bricks: {fallingBricks.Values.Sum()}");
 // 56443 too low
+// 66950 too low
+// 1101870 too high (incorrect calc, not possible value)
 
 IEnumerable<Brick> CalculateFallingBricks(Brick brick, IEnumerable<Brick> bricksBelow)
 {
@@ -324,3 +326,22 @@ record Coordinate
 }
 
 record Brick(string Id, Coordinate A, Coordinate B);
+
+
+/*
+var previuosCount = 0;
+    var bricksThatWillFall = new List<Brick>();
+    
+    do
+    {
+        // Run multiple times as removing an upper brick could destabilise bricks below.
+        previuosCount = bricksThatWillFall.Distinct().Count();
+        
+        bricksThatWillFall.AddRange(CalculateFallingBricks(brick, new List<Brick>()).Distinct());
+    } 
+    while (previuosCount < bricksThatWillFall.Distinct().Count());
+
+    Console.WriteLine($"Brick: {brick.Id}, Falling: {bricksThatWillFall.Distinct().Count()}");
+
+    totalFallingBricks += bricksThatWillFall.Distinct().Count();
+    */
