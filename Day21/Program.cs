@@ -4,7 +4,7 @@ var visited = new char[map.Length, map[0].Length];
 var stepsTaken = new StepsTaken[map.Length, map[0].Length];
 var startX = -1;
 var startY = -1;
-var numberOfSteps = 6;
+var numberOfSteps = 20;
 
 for (var y = 0; y < map.Length; y++)
 {
