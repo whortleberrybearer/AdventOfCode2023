@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 
 var input = File.ReadAllLines("Input.txt");
-var bricks = new List<Brick>();
+var bricks = new Dictionary<string, Brick>();
 var id = "A";
 var maxX = 0;
 var maxY = 0;
@@ -13,10 +13,12 @@ foreach (var line in input)
 
     var parts = line.Split(',', '~').Select(c => int.Parse(c)).ToArray();
         
-    bricks.Add(new Brick(
-        id,    
-        new Coordinate() { X = parts[0], Y = parts[1], Z = parts[2] },
-        new Coordinate() { X = parts[3], Y = parts[4], Z = parts[5] }));
+    bricks.Add(
+        id,
+        new Brick(
+            id,    
+            new Coordinate() { X = parts[0], Y = parts[1], Z = parts[2] },
+            new Coordinate() { X = parts[3], Y = parts[4], Z = parts[5] }));
 
     maxX = Math.Max(maxX, Math.Max(parts[0], parts[3]));
     maxY = Math.Max(maxY, Math.Max(parts[1], parts[4]));
@@ -32,7 +34,7 @@ maxZ += 1;
 
 var stack = new string[maxX, maxY, maxZ];
 
-foreach (var brick in bricks)
+foreach (var brick in bricks.Values)
 {
     Console.WriteLine($"Placing brick: {brick.Id}");
 
@@ -57,7 +59,7 @@ do
 {
     repeat = false;
 
-    foreach (var brick in bricks)
+    foreach (var brick in bricks.Values)
     {
         if (MoveDown(brick))
         {
@@ -127,6 +129,72 @@ for (var z = maxZ - 1; z >= 0 ; z--)
     }
     
     Console.WriteLine();
+}
+
+Console.WriteLine();
+
+var canRemove = 0;
+
+foreach (var brick in bricks.Values)
+{
+    // Find any bricks above it.
+    var bricksAbove = FindBricksAbove(brick);
+
+    foreach (var brickAbove in bricksAbove)
+    {
+        if (CanRemoveBrick(brickAbove, brick.Id))
+        {
+            canRemove += 1;
+
+            Console.WriteLine($"Brick: {brick.Id} can be removed");
+
+            break;
+        }
+    }
+}
+
+// 359 - Too low
+Console.WriteLine($"Total can remove: {canRemove}");
+
+bool CanRemoveBrick(Brick brick, string idBelow)
+{
+    for (var x = brick.A.X; x <= brick.B.X; x++)
+    {
+        for (var y = brick.A.Y; y <= brick.B.Y; y++)
+        {
+            for (var z = brick.A.Z; z <= brick.B.Z; z++)
+            {
+                if (!string.IsNullOrEmpty(stack[x, y, z - 1]) && (stack[x, y, z - 1] != brick.Id) && (stack[x, y, z - 1] != idBelow))
+                {
+                    // There is a different brick under this one.
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+IEnumerable<Brick> FindBricksAbove(Brick brick)
+{
+    var bricksAbove = new List<Brick>();
+
+    for (var x = brick.A.X; x <= brick.B.X; x++)
+    {
+        for (var y = brick.A.Y; y <= brick.B.Y; y++)
+        {
+            for (var z = brick.A.Z; z <= brick.B.Z; z++)
+            {
+                if (!string.IsNullOrEmpty(stack[x, y, z + 1]))
+                {
+                    bricksAbove.Add(bricks[stack[x, y, z + 1]]);
+                }
+            }
+        }
+    }
+
+    return bricksAbove;
 }
 
 bool MoveDown(Brick brick)
