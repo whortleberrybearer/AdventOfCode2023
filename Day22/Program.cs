@@ -160,9 +160,6 @@ foreach (var brick in bricks.Values)
     }
 }
 
-// 359 - Too low
-// 667 - Too high
-// 624 - Too high
 Console.WriteLine($"Total can remove: {bricksPossibleToRemove}");
 
 bool CanRemoveBrick(Brick brick, string idBelow)
