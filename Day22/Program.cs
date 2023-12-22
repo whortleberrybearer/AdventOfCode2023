@@ -2,10 +2,11 @@
 
 var input = File.ReadAllLines("Input.txt");
 var bricks = new Dictionary<string, Brick>();
-var id = "A";
+var id = "AAA";
 var maxX = 0;
 var maxY = 0;
 var maxZ = 0;
+var spacer = "...";
 
 foreach (var line in input)
 {
@@ -23,7 +24,7 @@ foreach (var line in input)
     maxX = Math.Max(maxX, Math.Max(parts[0], parts[3]));
     maxY = Math.Max(maxY, Math.Max(parts[1], parts[4]));
     maxZ = Math.Max(maxZ, Math.Max(parts[2], parts[5]));
-    id = GetNextPrefix(id, "0");
+    id = GetNextPrefix(id, "000");
 }
 
 Console.WriteLine();
@@ -44,7 +45,7 @@ foreach (var brick in bricks.Values)
         {
             for (var z = brick.A.Z; z <= brick.B.Z; z++)
             {
-                stack[x, y, z] = brick.Id;   
+                stack[x, y, z] = brick.Id;
             }
         }    
     }
@@ -76,19 +77,19 @@ for (var z = maxZ - 1; z >= 0 ; z--)
 {
     for (var x = 0; x < maxX; x++)
     {
-        var brickId = ".";
+        var brickId = spacer;
         
         for (var y = 0; y < maxY; y++)
         {
             if (!string.IsNullOrEmpty(stack[x, y, z]))
             {
-                if (brickId == ".")
+                if (brickId == spacer)
                 {
                     brickId = stack[x, y, z];
                 }
                 else if (brickId != stack[x, y, z])
                 {
-                    brickId = "?";
+                    brickId = "???";
                     break;
                 }
             }
@@ -107,19 +108,19 @@ for (var z = maxZ - 1; z >= 0 ; z--)
 {
     for (var y = 0; y < maxY; y++)
     {
-        var brickId = ".";
+        var brickId = spacer;
         
         for (var x = 0; x < maxX; x++)
         {
             if (!string.IsNullOrEmpty(stack[x, y, z]))
             {
-                if (brickId == ".")
+                if (brickId == spacer)
                 {
                     brickId = stack[x, y, z];
                 }
                 else if (brickId != stack[x, y, z])
                 {
-                    brickId = "?";
+                    brickId = "???";
                     break;
                 }
             }
@@ -133,28 +134,36 @@ for (var z = maxZ - 1; z >= 0 ; z--)
 
 Console.WriteLine();
 
-var canRemove = 0;
+var bricksPossibleToRemove = 0;
 
 foreach (var brick in bricks.Values)
 {
     // Find any bricks above it.
     var bricksAbove = FindBricksAbove(brick);
-
+    var canRemove = true;
+    
     foreach (var brickAbove in bricksAbove)
     {
-        if (CanRemoveBrick(brickAbove, brick.Id))
+        if (!CanRemoveBrick(brickAbove, brick.Id))
         {
-            canRemove += 1;
-
-            Console.WriteLine($"Brick: {brick.Id} can be removed");
+            canRemove = false;
 
             break;
         }
     }
+
+    if (canRemove)
+    {
+        bricksPossibleToRemove += 1;
+
+        Console.WriteLine($"Brick: {brick.Id} can be removed");
+    }
 }
 
 // 359 - Too low
-Console.WriteLine($"Total can remove: {canRemove}");
+// 667 - Too high
+// 624 - Too high
+Console.WriteLine($"Total can remove: {bricksPossibleToRemove}");
 
 bool CanRemoveBrick(Brick brick, string idBelow)
 {
@@ -186,7 +195,7 @@ IEnumerable<Brick> FindBricksAbove(Brick brick)
         {
             for (var z = brick.A.Z; z <= brick.B.Z; z++)
             {
-                if (!string.IsNullOrEmpty(stack[x, y, z + 1]))
+                if (!string.IsNullOrEmpty(stack[x, y, z + 1]) && (stack[x, y, z + 1] != brick.Id))
                 {
                     bricksAbove.Add(bricks[stack[x, y, z + 1]]);
                 }
