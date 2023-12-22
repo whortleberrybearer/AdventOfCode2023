@@ -144,7 +144,7 @@ foreach (var brick in bricks.Values)
     
     foreach (var brickAbove in bricksAbove)
     {
-        if (!CanRemoveBrick(brickAbove, brick.Id))
+        if (WillBrickFall(brickAbove, new string[] { brick.Id }))
         {
             canRemove = false;
 
@@ -163,59 +163,41 @@ foreach (var brick in bricks.Values)
 Console.WriteLine($"Total can remove: {bricksPossibleToRemove.Count()}");
 Console.WriteLine();
 
-var bricksThatWouldFall = new Dictionary<string, int>();
+var totalFallingBricks = 0;
 
 foreach (var brick in bricks.Values)
 {
-    if (!bricksThatWouldFall.TryGetValue(brick.Id, out var count))
-    {
-        count = CalculateFallingBricks(brick);
-    }
+    var bricksThatWillFall = CalculateFallingBricks(brick, new List<Brick>());
     
-    Console.WriteLine($"Brick: {brick.Id}, Falling: {count}");
-}
+    Console.WriteLine($"Brick: {brick.Id}, Falling: {bricksThatWillFall.Count()}");
 
-var totalFallingBricks = 0;
-
-foreach (var fallingBrick in bricksThatWouldFall)
-{
-    if (!bricksPossibleToRemove.Any(b => b.Id == fallingBrick.Key))
-    {
-        totalFallingBricks += fallingBrick.Value;
-    }
+    totalFallingBricks += bricksThatWillFall.Count();
 }
 
 Console.WriteLine($"Total falling bricks: {totalFallingBricks}");
 // 56443 too low
 
-int CalculateFallingBricks(Brick brick)
+IEnumerable<Brick> CalculateFallingBricks(Brick brick, IEnumerable<Brick> bricksBelow)
 {
     var bricksAbove = FindBricksAbove(brick);
-    var fallingBricksCount = 0;
-    
+    var bricksThatWillFall = new List<Brick>();
+
     foreach (var brickAbove in bricksAbove)
     {
-        if (!CanRemoveBrick(brickAbove, brick.Id))
+        var newBricksBelow = bricksBelow.Append(brick);
+        
+        if (WillBrickFall(brickAbove, newBricksBelow.Select(b => b.Id)))
         {
-            if (!bricksThatWouldFall.TryGetValue(brickAbove.Id, out var count))
-            {
-                count = CalculateFallingBricks(brickAbove) + 1;
-            }
+            bricksThatWillFall.Add(brickAbove);
             
-            fallingBricksCount += count;
-        }
-        else
-        {
-            //fallingBricksCount += 1;
+            bricksThatWillFall.AddRange(CalculateFallingBricks(brickAbove, Enumerable.Concat(newBricksBelow, bricksAbove)));
         }
     }
 
-    bricksThatWouldFall[brick.Id] = fallingBricksCount;
-
-    return fallingBricksCount;
+    return bricksThatWillFall.Distinct();
 }
 
-bool CanRemoveBrick(Brick brick, string idBelow)
+bool WillBrickFall(Brick brick, IEnumerable<string> idsBelow)
 {
     for (var x = brick.A.X; x <= brick.B.X; x++)
     {
@@ -223,16 +205,16 @@ bool CanRemoveBrick(Brick brick, string idBelow)
         {
             for (var z = brick.A.Z; z <= brick.B.Z; z++)
             {
-                if (!string.IsNullOrEmpty(stack[x, y, z - 1]) && (stack[x, y, z - 1] != brick.Id) && (stack[x, y, z - 1] != idBelow))
+                if (!string.IsNullOrEmpty(stack[x, y, z - 1]) && (stack[x, y, z - 1] != brick.Id) && (!idsBelow.Contains(stack[x, y, z - 1])))
                 {
                     // There is a different brick under this one.
-                    return true;
+                    return false;
                 }
             }
         }
     }
 
-    return false;
+    return true;
 }
 
 IEnumerable<Brick> FindBricksAbove(Brick brick)
