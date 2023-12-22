@@ -134,7 +134,7 @@ for (var z = maxZ - 1; z >= 0 ; z--)
 
 Console.WriteLine();
 
-var bricksPossibleToRemove = 0;
+var bricksPossibleToRemove = new List<Brick>();
 
 foreach (var brick in bricks.Values)
 {
@@ -154,13 +154,66 @@ foreach (var brick in bricks.Values)
 
     if (canRemove)
     {
-        bricksPossibleToRemove += 1;
+        bricksPossibleToRemove.Add(brick);
 
         Console.WriteLine($"Brick: {brick.Id} can be removed");
     }
 }
 
-Console.WriteLine($"Total can remove: {bricksPossibleToRemove}");
+Console.WriteLine($"Total can remove: {bricksPossibleToRemove.Count()}");
+Console.WriteLine();
+
+var bricksThatWouldFall = new Dictionary<string, int>();
+
+foreach (var brick in bricks.Values)
+{
+    if (!bricksThatWouldFall.TryGetValue(brick.Id, out var count))
+    {
+        count = CalculateFallingBricks(brick);
+    }
+    
+    Console.WriteLine($"Brick: {brick.Id}, Falling: {count}");
+}
+
+var totalFallingBricks = 0;
+
+foreach (var fallingBrick in bricksThatWouldFall)
+{
+    if (!bricksPossibleToRemove.Any(b => b.Id == fallingBrick.Key))
+    {
+        totalFallingBricks += fallingBrick.Value;
+    }
+}
+
+Console.WriteLine($"Total falling bricks: {totalFallingBricks}");
+// 56443 too low
+
+int CalculateFallingBricks(Brick brick)
+{
+    var bricksAbove = FindBricksAbove(brick);
+    var fallingBricksCount = 0;
+    
+    foreach (var brickAbove in bricksAbove)
+    {
+        if (!CanRemoveBrick(brickAbove, brick.Id))
+        {
+            if (!bricksThatWouldFall.TryGetValue(brickAbove.Id, out var count))
+            {
+                count = CalculateFallingBricks(brickAbove) + 1;
+            }
+            
+            fallingBricksCount += count;
+        }
+        else
+        {
+            //fallingBricksCount += 1;
+        }
+    }
+
+    bricksThatWouldFall[brick.Id] = fallingBricksCount;
+
+    return fallingBricksCount;
+}
 
 bool CanRemoveBrick(Brick brick, string idBelow)
 {
@@ -200,7 +253,7 @@ IEnumerable<Brick> FindBricksAbove(Brick brick)
         }
     }
 
-    return bricksAbove;
+    return bricksAbove.Distinct();
 }
 
 bool MoveDown(Brick brick)
