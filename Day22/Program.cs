@@ -135,6 +135,7 @@ for (var z = maxZ - 1; z >= 0 ; z--)
 Console.WriteLine();
 
 var bricksPossibleToRemove = new List<Brick>();
+var fallingBricks = new Dictionary<Brick, int>();
 
 foreach (var brick in bricks.Values)
 {
@@ -158,41 +159,39 @@ foreach (var brick in bricks.Values)
 
         Console.WriteLine($"Brick: {brick.Id} can be removed");
     }
+    else
+    {
+        fallingBricks.Add(brick, 0);
+    }
 }
 
 Console.WriteLine($"Total can remove: {bricksPossibleToRemove.Count()}");
 Console.WriteLine();
 
-var fallingBricks = new Dictionary<Brick, int>();
-
-foreach (var brick in bricks.Values)
+foreach (var brick in fallingBricks.Keys.ToArray())
 {
-    var falling = CalculateFallingBricks(brick, new List<Brick>());
+    var falling = CalculateFallingBricks(brick, new List<Brick>() { brick });
 
-    fallingBricks.Add(brick, falling.Count());
+    fallingBricks[brick] = falling.Count();
     
     Console.WriteLine($"Brick: {brick.Id}, Falling: {falling.Count()}");
 }
 
 Console.WriteLine($"Total falling bricks: {fallingBricks.Values.Sum()}");
-// 56443 too low
-// 66950 too low
-// 1101870 too high (incorrect calc, not possible value)
 
-IEnumerable<Brick> CalculateFallingBricks(Brick brick, IEnumerable<Brick> bricksBelow)
+IEnumerable<Brick> CalculateFallingBricks(Brick brick, List<Brick> bricksBelow)
 {
     var bricksAbove = FindBricksAbove(brick);
     var bricksThatWillFall = new List<Brick>();
 
     foreach (var brickAbove in bricksAbove)
     {
-        var newBricksBelow = bricksBelow.Append(brick);
-        
-        if (WillBrickFall(brickAbove, newBricksBelow.Select(b => b.Id)))
+        if (WillBrickFall(brickAbove, bricksBelow.Select(b => b.Id)))
         {
+            bricksBelow.Add(brickAbove);
             bricksThatWillFall.Add(brickAbove);
             
-            bricksThatWillFall.AddRange(CalculateFallingBricks(brickAbove, Enumerable.Concat(newBricksBelow, bricksAbove)));
+            bricksThatWillFall.AddRange(CalculateFallingBricks(brickAbove, bricksBelow));
         }
     }
 
@@ -326,22 +325,3 @@ record Coordinate
 }
 
 record Brick(string Id, Coordinate A, Coordinate B);
-
-
-/*
-var previuosCount = 0;
-    var bricksThatWillFall = new List<Brick>();
-    
-    do
-    {
-        // Run multiple times as removing an upper brick could destabilise bricks below.
-        previuosCount = bricksThatWillFall.Distinct().Count();
-        
-        bricksThatWillFall.AddRange(CalculateFallingBricks(brick, new List<Brick>()).Distinct());
-    } 
-    while (previuosCount < bricksThatWillFall.Distinct().Count());
-
-    Console.WriteLine($"Brick: {brick.Id}, Falling: {bricksThatWillFall.Distinct().Count()}");
-
-    totalFallingBricks += bricksThatWillFall.Distinct().Count();
-    */
