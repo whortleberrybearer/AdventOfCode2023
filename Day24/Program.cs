@@ -25,8 +25,8 @@ foreach (var line in input)
 
 Console.WriteLine();
 
-var textAreaMin = 7;
-var testAreaMax = 27;
+var textAreaMin = 200000000000000;
+var testAreaMax = 400000000000000;
 
 var totalIntersections = 0;
 
@@ -39,9 +39,9 @@ for (var i = 0; i < hailStones.Count; i++)
 
         var doesIntersect = TryFindIntersection(
             hailstone1.Position,
-            hailstone1.Position + (hailstone1.Direction * 100),
+            hailstone1.Position + (hailstone1.Direction * 1000000000000000),
             hailstone2.Position,
-            hailstone2.Position + (hailstone2.Direction * 100),
+            hailstone2.Position + (hailstone2.Direction * 1000000000000000),
             out var intersection);
 
         if (doesIntersect)
