@@ -1,5 +1,4 @@
-﻿using System.Drawing;
-using System.Numerics;
+﻿using System.Numerics;
 
 var input = File.ReadAllLines("Input.txt");
 var hailStones = new Dictionary<string, HailStone>();
@@ -17,8 +16,6 @@ foreach (var line in input)
             id,
             new Vector2() { X = parts[0], Y = parts[1] },
             new Vector2() { X = parts[3], Y = parts[4] }));
-    //new Vector2() { X = parts[0], Y = parts[1], Z = parts[2] },
-    //new Vector2() { X = parts[3], Y = parts[4], Z = parts[5] }));
 
     id = GetNextPrefix(id, "000");
 }
@@ -116,14 +113,3 @@ bool TryFindIntersection(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, out Vec
 }
 
 record HailStone(string Id, Vector2 Position, Vector2 Direction);
-
-record Coordinate
-{
-    public int X { get; set; }
-
-    public int Y { get; set; }
-
-    public int Z { get; set; }
-}
-
-record Movement(int X, int Y, int Z);
