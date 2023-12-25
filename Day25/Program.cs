@@ -24,20 +24,46 @@ foreach (var line in input)
 }
 
 Console.WriteLine();
-var routes = new Dictionary<string, IEnumerable<Wire>>();
+var routes = new Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)>();
 
 for (var i = 0; i < nodes.Count; i++)
 {
     for (var j = i + 1; j < nodes.Count; j++)
     {
-        var path = FindRoute(nodes.Keys.ElementAt(i), nodes.Keys.ElementAt(j));
-
-        if (path != null)
+        if (routes.ContainsKey($"{nodes.Keys.ElementAt(i)}-{nodes.Keys.ElementAt(j)}"))
         {
-            Console.WriteLine($"{nodes.Keys.ElementAt(i)}->{nodes.Keys.ElementAt(j)} = {string.Join(" - ", path.Select(p => $"{p.Start}-{p.End}"))}");
+            continue;
+        }
 
-            routes.Add($"{nodes.Keys.ElementAt(i)}-{nodes.Keys.ElementAt(j)}", path.ToArray());
-            routes.Add($"{nodes.Keys.ElementAt(j)}-{nodes.Keys.ElementAt(i)}", path.ToArray());
+        var route = FindRoute(nodes.Keys.ElementAt(i), nodes.Keys.ElementAt(j));
+
+        if (route != null)
+        {
+            Console.WriteLine($"{nodes.Keys.ElementAt(i)}->{nodes.Keys.ElementAt(j)} = {string.Join(" - ", route.Value.Wires.Select(p => $"{p.Start}-{p.End}"))}");
+
+
+            //routes.Add($"{nodes.Keys.ElementAt(i)}-{nodes.Keys.ElementAt(j)}", (route.Value.Nodes, route.Value.Wires));
+            //routes.Add($"{nodes.Keys.ElementAt(j)}-{nodes.Keys.ElementAt(i)}", (route.Value.Nodes.Reverse(), route.Value.Wires.Reverse()));
+
+            for (var i1 = 0; i1 < route.Value.Nodes.Count(); i1++)
+            {
+                for (var j1 = i1 + 1; j1 < route.Value.Nodes.Count(); j1++)
+                {
+                    var start = route.Value.Nodes.ElementAt(i1);
+                    var end = route.Value.Nodes.ElementAt(j1);
+
+                    if (!routes.ContainsKey($"{start}-{end}") &&
+                        !routes.ContainsKey($"{end}-{start}"))
+                    {
+                        var takeCount = (j1 - i1) + 1;
+                        var routeNodes = route.Value.Nodes.Skip(i1).Take(takeCount);
+                        var routeWires = route.Value.Wires.Skip(i1).Take(takeCount - 1);
+
+                        routes.Add($"{start}-{end}", (routeNodes.ToArray(), routeWires.ToArray()));
+                        routes.Add($"{end}-{start}", (routeNodes.Reverse().ToArray(), routeWires.Reverse().ToArray()));
+                    }
+                }
+            }
         }
         else
         {
@@ -49,7 +75,7 @@ for (var i = 0; i < nodes.Count; i++)
 
 Console.WriteLine();
 
-var groups = routes.Values.SelectMany(r => r).GroupBy(w => w).OrderByDescending(g => g.Count());
+var groups = routes.Values.SelectMany(r => r.Wires).GroupBy(w => w).OrderByDescending(g => g.Count());
 
 foreach(var group in groups)
 {
@@ -58,50 +84,59 @@ foreach(var group in groups)
 
 Console.WriteLine();
 
-IEnumerable<Wire>? FindRoute(string start, string end)
+(IEnumerable<string> Nodes, IEnumerable<Wire> Wires)? FindRoute(string start, string end)
 {
-    var routes = new List<Route>()
+    var expandingRoutes = new List<Route>()
     {
-        new Route(start, null, Enumerable.Empty<Wire>()),
+        new Route(start, Enumerable.Empty<string>(), null, Enumerable.Empty<Wire>()),
     };
 
     do
     {
-        var route = routes.First();
-        routes.Remove(route);
-
-        if (route.Node == "pzl")
-        {
-            int i = 0;
-        }
+        var route = expandingRoutes.First();
+        expandingRoutes.Remove(route);
 
         var previousWires = route.PreviousWires;
+        var previousNodes = route.PreviousNodes;
 
         if (route.Wire != null)
         {
-            previousWires = route.PreviousWires.Append(route.Wire).ToArray();
+            previousWires = previousWires.Append(route.Wire).ToArray();
+        }
+
+        if (route.Node != null)
+        {
+            previousNodes = previousNodes.Append(route.Node).ToArray();
         }
 
         if (route.Node == end)
         {
-            return previousWires;
+            return (previousNodes, previousWires);
         }
-        else
+
+        if (routes.TryGetValue($"{route.Node}-{end}", out var path))
         {
-            foreach (var link in nodes[route.Node])
+            return (previousNodes.Concat(path.Nodes.Skip(1)), previousWires.Concat(path.Wires));
+        }
+
+        foreach (var link in nodes[route.Node])
+        {
+            if (!previousWires.Contains(link))
             {
-                if (!previousWires.Contains(link))
+                var routeNode = route.Node == link.Start ? link.End : link.Start;
+
+                if (!expandingRoutes.Any(r => r.Node == routeNode))
                 {
-                    routes.Add(new Route(route.Node == link.Start ? link.End : link.Start, link, previousWires));
+                    expandingRoutes.Add(new Route(routeNode, previousNodes, link, previousWires));
                 }
             }
         }
     }
-    while (routes.Count > 0);
+    while (expandingRoutes.Count > 0);
 
     return null;
 }
 
-record Route(string Node, Wire Wire, IEnumerable<Wire> PreviousWires);
+record Route(string Node, IEnumerable<string> PreviousNodes, Wire Wire, IEnumerable<Wire> PreviousWires);
 
 record Wire(string Start, string End, bool Cut = false);
