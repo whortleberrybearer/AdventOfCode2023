@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-var input = File.ReadAllLines("Input.txt");
+﻿var input = File.ReadAllLines("Input.txt");
 var allNodes = new List<string>();
 
 foreach (var line in input)
@@ -18,16 +16,7 @@ foreach (var line in input)
 
     foreach (var join in parts.Skip(1))
     {
-        var wire = new Wire(parts[0], join);
-
-        if ((parts[0] == "kfr" && join == "vkp")
-            || (parts[0] == "qpp" && join == "vnm") 
-            || (parts[0] == "rhk" && join == "bff")
-            )
-        {
-            wire.Cut = true;
-        }
-        
+        var wire = new Wire(parts[0], join);        
 
         nodes[parts[0]].Add(wire);
         nodes[join].Add(wire);
@@ -37,7 +26,7 @@ foreach (var line in input)
 Console.WriteLine();
 
 var wiresCut = new List<Wire>();
-/*
+
 for (var i = 0; i < 3; i++)
 {
     var routes = new Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)>();
@@ -72,9 +61,6 @@ for (var i = 0; i < 3; i++)
 
     Console.WriteLine();
 }
-*/
-
-wiresCut.Add(new Wire("kfr", "vkp"));
 
 CalculateSections(wiresCut);
 
@@ -157,8 +143,7 @@ Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)> Calcaul
             }
             else
             {
-                // No path for some reason.
-                int xxx = 0;
+                Console.WriteLine($"{nodes.Keys.ElementAt(i)}->{nodes.Keys.ElementAt(j)} = No route");
             }
         }
     }
