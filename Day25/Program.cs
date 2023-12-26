@@ -20,9 +20,10 @@ foreach (var line in input)
     {
         var wire = new Wire(parts[0], join);
 
-        /*(if ((parts[0] == "jqt" && join == "nvd")
-            || (parts[0] == "cmg" && join == "bvb") 
-            || (parts[0] == "pzl" && join == "hfx")
+        /*
+        if ((parts[0] == "kfr" && join == "vkp")
+            || (parts[0] == "qpp" && join == "vnm") 
+            //|| (parts[0] == "rhk" && join == "bff")
             )
         {
             wire.Cut = true;
@@ -37,11 +38,10 @@ foreach (var line in input)
 Console.WriteLine();
 
 var wiresCut = new List<Wire>();
+var routes = new Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)>();
 
 for (var i = 0; i < 3; i++)
-{
-    var routes = new Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)>();
-    
+{   
     routes = CalcaulareNodeRoutes(routes);
 
     var groups = routes.Values.SelectMany(r => r.Wires).GroupBy(w => w).OrderBy(g => g.Count()).ToArray();
@@ -73,12 +73,12 @@ for (var i = 0; i < 3; i++)
     Console.WriteLine();
 }
 
-CalculateSections(wiresCut);
 
-void CalculateSections(IEnumerable<Wire> wiresCut)
+CalculateSections(wiresCut, routes);
+
+void CalculateSections(IEnumerable<Wire> wiresCut, Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)> routes)
 {
     var wire = wiresCut.First();
-    var routes = new Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)>();
     var disconnected = new List<string>();
 
     for (var i = 0; i < nodes.Count; i++)
@@ -96,6 +96,30 @@ void CalculateSections(IEnumerable<Wire> wiresCut)
             disconnected.Add(nodes.Keys.ElementAt(i));
 
             Console.WriteLine($"{nodes.Keys.ElementAt(i)} is disconnected");
+        }
+        else
+        {
+            Console.WriteLine($"{wire.Start}->{nodes.Keys.ElementAt(i)} = {string.Join(" - ", route.Value.Wires.Select(p => $"{p.Start}-{p.End}"))}");
+
+            for (var i1 = 0; i1 < route.Value.Nodes.Count(); i1++)
+            {
+                for (var j1 = i1 + 1; j1 < route.Value.Nodes.Count(); j1++)
+                {
+                    var start = route.Value.Nodes.ElementAt(i1);
+                    var end = route.Value.Nodes.ElementAt(j1);
+
+                    if (!routes.ContainsKey($"{start}-{end}") &&
+                        !routes.ContainsKey($"{end}-{start}"))
+                    {
+                        var takeCount = (j1 - i1) + 1;
+                        var routeNodes = route.Value.Nodes.Skip(i1).Take(takeCount);
+                        var routeWires = route.Value.Wires.Skip(i1).Take(takeCount - 1);
+
+                        routes.Add($"{start}-{end}", (routeNodes.ToArray(), routeWires.ToArray()));
+                        routes.Add($"{end}-{start}", (routeNodes.Reverse().ToArray(), routeWires.Reverse().ToArray()));
+                    }
+                }
+            }
         }
     }
 
@@ -122,10 +146,6 @@ Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)> Calcaul
             if (route != null)
             {
                 Console.WriteLine($"{nodes.Keys.ElementAt(i)}->{nodes.Keys.ElementAt(j)} = {string.Join(" - ", route.Value.Wires.Select(p => $"{p.Start}-{p.End}"))}");
-
-
-                //routes.Add($"{nodes.Keys.ElementAt(i)}-{nodes.Keys.ElementAt(j)}", (route.Value.Nodes, route.Value.Wires));
-                //routes.Add($"{nodes.Keys.ElementAt(j)}-{nodes.Keys.ElementAt(i)}", (route.Value.Nodes.Reverse(), route.Value.Wires.Reverse()));
 
                 for (var i1 = 0; i1 < route.Value.Nodes.Count(); i1++)
                 {
@@ -192,7 +212,10 @@ Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)> Calcaul
 
         if (routes.TryGetValue($"{route.Node}-{end}", out var path))
         {
-            return (previousNodes.Concat(path.Nodes.Skip(1)), previousWires.Concat(path.Wires));
+            if (!path.Nodes.Intersect(previousNodes).Any())
+            {
+                return (previousNodes.Concat(path.Nodes.Skip(1)), previousWires.Concat(path.Wires));
+            }
         }
 
         foreach (var link in nodes[route.Node].Where(n => n.Cut == false))
