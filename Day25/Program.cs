@@ -1,4 +1,6 @@
-﻿var input = File.ReadAllLines("Input.txt");
+﻿using System.Text.Json.Serialization;
+
+var input = File.ReadAllLines("Input.txt");
 var allNodes = new List<string>();
 
 foreach (var line in input)
@@ -34,6 +36,8 @@ foreach (var line in input)
 
 Console.WriteLine();
 
+var wiresCut = new List<Wire>();
+
 for (var i = 0; i < 3; i++)
 {
     var routes = new Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)>();
@@ -53,6 +57,8 @@ for (var i = 0; i < 3; i++)
 
     Console.WriteLine($"Cut wire {wire}");
 
+    wiresCut.Add(wire);
+
     // Remove any routes that need re-expanding.
     foreach (var route in routes.ToArray())
     {
@@ -67,11 +73,37 @@ for (var i = 0; i < 3; i++)
     Console.WriteLine();
 }
 
-//CalculateSections(wire1, wire2, wire3);
+CalculateSections(wiresCut);
 
-void CalculateSections(Wire wire1, Wire wire2, Wire wire3)
+void CalculateSections(IEnumerable<Wire> wiresCut)
 {
-    throw new NotImplementedException();
+    var wire = wiresCut.First();
+    var routes = new Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)>();
+    var disconnected = new List<string>();
+
+    for (var i = 0; i < nodes.Count; i++)
+    {
+        // Don't check what currently checking/
+        if (nodes.ElementAt(i).Key == wire.Start)
+        {
+            continue;
+        }
+
+        var route = FindRoute(wire.Start, nodes.Keys.ElementAt(i), routes);
+
+        if (route == null)
+        {
+            disconnected.Add(nodes.Keys.ElementAt(i));
+
+            Console.WriteLine($"{nodes.Keys.ElementAt(i)} is disconnected");
+        }
+    }
+
+    var connectedCount = nodes.Count - disconnected.LongCount();
+
+    var total = connectedCount * disconnected.LongCount();
+
+    Console.WriteLine($"Connected: {connectedCount},  Disconnected: {disconnected.LongCount()}, Total: {total}");
 }
 
 Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)> CalcaulareNodeRoutes(Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)> routes)
