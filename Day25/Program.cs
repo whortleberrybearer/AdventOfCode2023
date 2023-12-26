@@ -37,7 +37,7 @@ foreach (var line in input)
 Console.WriteLine();
 
 var wiresCut = new List<Wire>();
-/*
+
 for (var i = 0; i < 3; i++)
 {
     var routes = new Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)>();
@@ -72,65 +72,50 @@ for (var i = 0; i < 3; i++)
 
     Console.WriteLine();
 }
-*/
 
-wiresCut.Add(new Wire("kfr", "vkp"));
+
+//wiresCut.Add(new Wire("kfr", "vkp"));
 
 CalculateSections(wiresCut);
 
 void CalculateSections(IEnumerable<Wire> wiresCut)
 {
     var wire = wiresCut.First();
-    var routes = new Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)>();
-    var disconnected = new List<string>();
-
-    for (var i = 0; i < nodes.Count; i++)
+    var nodesToCheck = new List<string>()
     {
-        // Don't check what currently checking/
-        if (nodes.ElementAt(i).Key == wire.Start)
+        wire.Start
+    };
+    var visited = new List<string>()
+    {
+        wire.Start
+    };
+
+    do
+    {
+        var node = nodesToCheck.First();
+        nodesToCheck.Remove(node);
+
+        foreach (var link in nodes[node].Where(w => !w.Cut))
         {
-            continue;
-        }
+            var linkNode = node == link.Start ? link.End : link.Start;
 
-        var route = FindRoute(wire.Start, nodes.Keys.ElementAt(i), routes);
-
-        if (route == null)
-        {
-            disconnected.Add(nodes.Keys.ElementAt(i));
-
-            Console.WriteLine($"{nodes.Keys.ElementAt(i)} is disconnected");
-        }
-        else
-        {
-            Console.WriteLine($"{wire.Start}->{nodes.Keys.ElementAt(i)} = {string.Join(" - ", route.Value.Wires.Select(p => $"{p.Start}-{p.End}"))}");
-
-            for (var i1 = 0; i1 < route.Value.Nodes.Count(); i1++)
+            if (!visited.Contains(linkNode))
             {
-                for (var j1 = i1 + 1; j1 < route.Value.Nodes.Count(); j1++)
-                {
-                    var start = route.Value.Nodes.ElementAt(i1);
-                    var end = route.Value.Nodes.ElementAt(j1);
+                visited.Add(linkNode);
 
-                    if (!routes.ContainsKey($"{start}-{end}") &&
-                        !routes.ContainsKey($"{end}-{start}"))
-                    {
-                        var takeCount = (j1 - i1) + 1;
-                        var routeNodes = route.Value.Nodes.Skip(i1).Take(takeCount);
-                        var routeWires = route.Value.Wires.Skip(i1).Take(takeCount - 1);
+                Console.WriteLine($"Connected: {linkNode}");
 
-                        routes.Add($"{start}-{end}", (routeNodes.ToArray(), routeWires.ToArray()));
-                        routes.Add($"{end}-{start}", (routeNodes.Reverse().ToArray(), routeWires.Reverse().ToArray()));
-                    }
-                }
+                nodesToCheck.Add(linkNode);
             }
         }
     }
+    while (nodesToCheck.Any());
+    
+    var disconnectedCount = nodes.Count - visited.LongCount();
 
-    var connectedCount = nodes.Count - disconnected.LongCount();
+    var total = disconnectedCount * visited.LongCount();
 
-    var total = connectedCount * disconnected.LongCount();
-
-    Console.WriteLine($"Connected: {connectedCount},  Disconnected: {disconnected.LongCount()}, Total: {total}");
+    Console.WriteLine($"Connected: {visited.LongCount()},  Disconnected: {disconnectedCount}, Total: {total}");
 }
 
 Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)> CalcaulareNodeRoutes(Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)> routes)
