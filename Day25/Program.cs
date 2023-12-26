@@ -37,7 +37,7 @@ foreach (var line in input)
 Console.WriteLine();
 
 var wiresCut = new List<Wire>();
-
+/*
 for (var i = 0; i < 3; i++)
 {
     var routes = new Dictionary<string, (IEnumerable<string> Nodes, IEnumerable<Wire> Wires)>();
@@ -72,9 +72,9 @@ for (var i = 0; i < 3; i++)
 
     Console.WriteLine();
 }
+*/
 
-
-//wiresCut.Add(new Wire("kfr", "vkp"));
+wiresCut.Add(new Wire("kfr", "vkp"));
 
 CalculateSections(wiresCut);
 
